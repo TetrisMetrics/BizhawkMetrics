@@ -155,7 +155,16 @@ function updateTetriminos()
   if hasTetriminoLockedThisFrame() then
     game:addTetrimino({[getGameFrame()] = nt})
     local drought = game.drought:endTurn(linesClearedThisTurn(), readBoard():isTetrisReady(), at)
-    print(drought["drought"], drought["paused"])
+    local droughtLength = drought["drought"]
+    local pauseLength = drought["paused"]
+
+    print(droughtLength,  pauseLength)
+
+    -- Write drought counter to NES RAM so that it can be displayed.
+    memory.writebyte(0x03fe, droughtLength);
+    local droughtLengthDecimal = math.floor(droughtLength / 10) * 16 + (droughtLength % 10);
+    memory.writebyte(0x03ff, droughtLength);
+
     --readBoard():dump()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   end
