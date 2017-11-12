@@ -155,7 +155,7 @@ function updateTetriminos()
   if hasTetriminoLockedThisFrame() then
     game:addTetrimino({[getGameFrame()] = nt})
     local drought = game.drought:endTurn(linesClearedThisTurn(), readBoard():isTetrisReady(), at)
-    print("drought", tableToString(drought), drought["drought"], drought["paused"])
+    print(drought["drought"], drought["paused"])
     --readBoard():dump()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   end
