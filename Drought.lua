@@ -52,5 +52,5 @@ function Drought:endTurn(nrLinesThisTurn, tetrisReadyAfterTurn, nextTet)
     self.pauseTime = self.pauseTime + 1
   end
 
-  return {self.drought, self.pauseTime}
+  return {["drought"] = self.drought, ["paused"] = self.pauseTime}
 end

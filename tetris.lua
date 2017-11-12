@@ -155,7 +155,7 @@ function updateTetriminos()
   if hasTetriminoLockedThisFrame() then
     game:addTetrimino({[getGameFrame()] = nt})
     local drought = game.drought:endTurn(linesClearedThisTurn(), readBoard():isTetrisReady(), at)
-    print("drought", tableToString(drought))
+    print("drought", tableToString(drought), drought["drought"], drought["paused"])
     --readBoard():dump()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   end
@@ -176,9 +176,75 @@ playStateGlobal         = getPlayState()
 currentTetriminoGlobal  = getTetrimino()
 linesGlobal             = 0
 
+
+
+--
+---- Memory domains on NES:
+---- WRAM, CHR, CIRAM (nametables), PRG ROM, PALRAM, OAM, System Bus, RAM
+--
+--local spriteHeight = 8
+--
+--local function setDomain( newDomain )
+--  local previousDomain = memory.getcurrentmemorydomain()
+--  memory.usememorydomain( newDomain )
+--  return previousDomain
+--end
+--
+--local function visualizeSprite( index )
+--  local y    = memory.read_u8( 4 * index + 0 )
+--  local tile = memory.read_u8( 4 * index + 1 )
+--  local attr = memory.read_u8( 4 * index + 2 )
+--  local x    = memory.read_u8( 4 * index + 3 )
+--
+--  -- \note QuickNes and NesHawk cores differ in the origin of
+--  -- gui.drawRectangle (bug?)
+--  -- local topScanline = nes.gettopscanline() -- QuickNES
+--  local topScanline = 0 -- NesHawk
+--
+--  local kSpriteWidth  = 8
+--
+--  gui.drawRectangle(
+--    x, y + 1 - topScanline,
+--    kSpriteWidth - 1, spriteHeight - 1,
+--    0xB0FF00FF -- ARGB
+--  )
+--end
+--
+--local function visualizeSprites()
+--  local previousDomain = setDomain( "OAM" )
+--
+--  for i = 0, 63 do
+--    visualizeSprite( i )
+--  end
+--
+--  memory.usememorydomain( previousDomain )
+--end
+--
+--local guid2000 = event.onmemorywrite ( function()
+--  local previousDomain = setDomain( "System Bus" )
+--
+--  -- Rely on read-only PPU registers returning the previous value written
+--  -- to any PPU register. There doesn't seem to be any other way to
+--  -- get the written value in BizHawk.
+--  -- http://forums.nesdev.com/viewtopic.php?p=153077#p153077
+--  local reg2000 = memory.read_u8( 0x2000 )
+--
+--  spriteHeight = bit.check( reg2000, 5 ) and 16 or 8
+--
+--  memory.usememorydomain( previousDomain )
+--end, 0x2000 )
+--
+---- QuickNES core doesn't support onmemorywrite(), returns zero GUID
+--assert( guid2000 ~= "00000000-0000-0000-0000-000000000000",
+--"couldn't set memory write hook (use NesHawk core)" )
+--
+--print( "hardware-sprite-visualizer loaded" )
+
 -- the main loop. runs main function, advances frame, then loops.
 while true do
   main()
+  --what()
+  --visualizeSprites()
   emu.frameadvance()
 end
 
@@ -201,13 +267,31 @@ end
 --
 --setUpBoardCallbacks()
 
-
+--
+--
+--
+--function what()
+--  ----ROM Write (Compare) - If the value at ROM address 0x8614 is ever 0xA5, it changes it to 0xA9.
+--  ----memory.writebyte(Addresses["TetriminoID"], 2)
+--  --if(memory.readbyte(0x8614) == 165) then
+--  --  --print("hi", memory.readbyte(0x8614))
+--  --  memory.writebyte(0x8614, 169)
+--  --end
+--  --print("hi", memory.readbyte(0x0059))
+--  memory.writebyte(0x0059, 3)
+--  memory.writebyte(0x0079, 3)
+--
+--end
+--
+--
 --
 --event.onmemorywrite ( function()
---  print(memory.readbyte( Addresses["TetriminoX"] ))
---end, Addresses["TetriminoX"] )
+--  print(memory.readbyte(0x0059))
+--  memory.writebyte(0x0059, 3)
+--  if(memory.readbyte(0x8614) == 0xA5) then
+--    --print("hi", memory.readbyte(0x8614))
+--    memory.writebyte(0x8614, 0xA9)
+--  end
+--end, 0x0059)
+--
 
-
---["TetriminoX"]         = 0x0060,
---["TetriminoY1"]        = 0x0061,
---["TetriminoY2"]        = 0x0041,
