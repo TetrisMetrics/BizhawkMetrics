@@ -163,7 +163,10 @@ function updateTetriminos()
     -- Write drought counter to NES RAM so that it can be displayed.
     memory.writebyte(0x03fe, droughtLength);
     local droughtLengthDecimal = math.floor(droughtLength / 10) * 16 + (droughtLength % 10);
-    memory.writebyte(0x03ff, droughtLength);
+    memory.writebyte(0x03ff, droughtLengthDecimal);
+
+    -- bcd not needed here, because it's just being tested against 0 right now.
+    memory.writebyte(0x03ee, pauseLength);
 
     --readBoard():dump()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
