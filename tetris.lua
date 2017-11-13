@@ -158,7 +158,7 @@ function updateTetriminos()
     local droughtLength = drought["drought"]
     local pauseLength = drought["paused"]
 
-    print(droughtLength,  pauseLength)
+    --print(droughtLength,  pauseLength)
 
     -- Write drought counter to NES RAM so that it can be displayed.
     memory.writebyte(0x03fe, droughtLength);
