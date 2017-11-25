@@ -34,7 +34,55 @@ function Board:isTetrisReady ()
   return false
 end
 
--- TODO: do we need to adjust to depth - 1?
+--[[
+   we want to get sets of relative height diffs across rows
+   possibilities we are looking for are:
+   0: fits O, L, J
+   1, -1: fits Z, S, T
+   -2: fits L
+   2: fits J
+   {0, 0}: fits T, L, J
+   {0, 0, 0}: fits I (but basically every board fits an I)
+]]
+function Board:accomodationScore ()
+  -- local t = {[0] = false, [1] = false, [-1] = false, [{0,0}] = false}
+  local a = {["I"] = true}
+  local rs = self.relativeHeights()
+  for i = 0, 8 do
+    if rs[i] ==  0 then a["0"] = true; a["J"] = true; a["L"] = true end
+    if rs[i] ==  1 then a["Z"] = true; a["S"] = true; a["T"] = true end
+    if rs[i] == -1 then a["Z"] = true; a["S"] = true; a["T"] = true end
+    if rs[i] ==  2 then a["J"] = true end
+    if rs[i] == -2 then a["L"] = true end
+  end
+  return tableLength(rs)
+end
+
+function Board:relativeHeights()
+  local hs = self.heights()
+  local rs = {}
+  for i = 0, 8 do
+    rs[i] = hs[i + 1] - hs[i]
+  end
+  return rs
+end
+
+-- TODO: would be nice if we could memoize this.
+function Board:heights ()
+  local hs = {}
+  for c=0,9 do hs[c] = heightAtCol(c) end
+  return hs
+end
+
+-- TODO: would be nice if we could memoize this.
+function Board:heightAtCol(col)
+  for r=19,0,-1 do
+    if self.rawBoard[i][col] ~= EMPTY_SQUARE then return r end
+  end
+  return 0
+end
+
+--- TODO: do we need to adjust to depth - 1?
 function Board:isColumnEmptyUntil (col, depth)
   for i=0,depth do
     if self.rows[i].row[col] ~= EMPTY_SQUARE then return false end
