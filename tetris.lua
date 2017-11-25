@@ -124,7 +124,7 @@ function updateGameStateGlobals()
 
   if(ending) then
     print("\n" .. "game ended on frame " .. emu.framecount() .. "\n")
-    print(game:dump())
+    if(game ~= nil) then print(game:dump()) end
   end
 end
 
@@ -137,6 +137,7 @@ function linesClearedThisTurn()
     game:addClear(nrThisTurn)
     linesGlobal = lines
   end
+  -- print(memory.readbyte(0x0056), nrThisTurn) -- 	number of lines being cleared
   return nrThisTurn
 end
 
@@ -156,9 +157,7 @@ function updateTetriminos()
     game:addTetrimino({[getGameFrame()] = nt})
     local drought = game.drought:endTurn(linesClearedThisTurn(), readBoard():isTetrisReady(), at)
     local droughtLength = drought["drought"]
-    local pauseLength = drought["paused"]
-
-    --print(droughtLength,  pauseLength)
+    local pauseLength   = drought["paused"]
 
     -- Write drought counter to NES RAM so that it can be displayed.
     memory.writebyte(0x03fe, droughtLength);
@@ -167,6 +166,10 @@ function updateTetriminos()
 
     -- bcd not needed here, because it's just being tested against 0 right now.
     memory.writebyte(0x03ee, pauseLength);
+
+    local b = readBoard()
+    game:addAccommodation(b:accommodationScore())
+    print("accommodation avg: ", game:accommodationAvg())
 
     --readBoard():dump()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))

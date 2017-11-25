@@ -10,24 +10,27 @@ require ('List')
 require ('helpers')
 
 TetrisGame = class(function(a,startFrame,level)
-  a.startFrame    = startFrame
-  a.level         = level
-  a.frames        = {}
-  a.tetriminos    = List()
-  a.clears        = List()
-  a.drought       = Drought()
+  a.startFrame     = startFrame
+  a.level          = level
+  a.frames         = {}
+  a.tetriminos     = List()
+  a.clears         = List()
+  a.drought        = Drought()
+  a.nrDrops        = 0
+  a.accommodations = 0
 end)
 
 function TetrisGame:dump()
   return "Game{" ..
-    --"tetriminos: "    .. self.tetriminos:dump()            ..
-    -- ", frames: "   .. tableToList(self.frames):dump()   ..
-    "  clears: "      .. self.clears:dump()                ..
-    ", droughts: "    .. self.drought.droughts:dump()      ..
-    ", pauses: "      .. self.drought.pauseTimes:dump()    ..
-    ", avg clear: "   .. self.clears:average()             ..
-    ", avg drought: " .. self.drought.droughts:average()   ..
-    ", avg pause: "   .. self.drought.pauseTimes:average() ..
+    --"tetriminos: "          .. self.tetriminos:dump()                ..
+    --", frames: "            .. tableToList(self.frames):dump()       ..
+    --", clears: "            .. self.clears:dump()                    ..
+    --", droughts: "          .. self.drought.droughts:dump()          ..
+    --", pauses: "            .. self.drought.pauseTimes:dump()        ..
+    ", avg clear: "         .. self.clears:average()                 ..
+    ", avg drought: "       .. self.drought.droughts:average()       ..
+    ", avg pause: "         .. self.drought.pauseTimes:average()     ..
+    ", avg accommodation: " .. self:accommodationAvg()               ..
   "}"
 end
 
@@ -48,6 +51,15 @@ end
 
 function TetrisGame:addTetrimino (t)
   self.tetriminos:pushright(t)
+end
+
+function TetrisGame:addAccommodation (a)
+  self.nrDrops        = self.nrDrops + 1
+  self.accommodations = self.accommodations + a
+end
+
+function TetrisGame:accommodationAvg ()
+  return (self.accommodations / self.nrDrops)
 end
 
 function TetrisGame:getPreviousTetrimino ()

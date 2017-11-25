@@ -44,22 +44,27 @@ end
    {0, 0}: fits T, L, J
    {0, 0, 0}: fits I (but basically every board fits an I)
 ]]
-function Board:accomodationScore ()
+function Board:accommodationScore ()
   -- local t = {[0] = false, [1] = false, [-1] = false, [{0,0}] = false}
   local a = {["I"] = true}
-  local rs = self.relativeHeights()
+  local rs = self:relativeHeights()
   for i = 0, 8 do
+    -- width 2 tests
     if rs[i] ==  0 then a["0"] = true; a["J"] = true; a["L"] = true end
-    if rs[i] ==  1 then a["Z"] = true; a["S"] = true; a["T"] = true end
-    if rs[i] == -1 then a["Z"] = true; a["S"] = true; a["T"] = true end
+    if rs[i] ==  1 then a["Z"] = true; a["T"] = true end
+    if rs[i] == -1 then a["S"] = true; a["T"] = true end
     if rs[i] ==  2 then a["J"] = true end
     if rs[i] == -2 then a["L"] = true end
+    -- width 3 tests
+    if i < 8 and rs[i] == -1 and rs[i+1] == 0 then a["Z"] = true end
+    if i < 8 and rs[i] ==  0 and rs[i+1] == 1 then a["S"] = true end
+    if i < 8 and rs[i] ==  0 and rs[i+1] == 0 then a["T"] = true end
   end
-  return tableLength(rs)
+  return tableLength(a)
 end
 
 function Board:relativeHeights()
-  local hs = self.heights()
+  local hs = self:heights()
   local rs = {}
   for i = 0, 8 do
     rs[i] = hs[i + 1] - hs[i]
@@ -70,14 +75,16 @@ end
 -- TODO: would be nice if we could memoize this.
 function Board:heights ()
   local hs = {}
-  for c=0,9 do hs[c] = heightAtCol(c) end
+  for c=0,9 do
+    hs[c] = self:heightAtCol(c)
+  end
   return hs
 end
 
 -- TODO: would be nice if we could memoize this.
 function Board:heightAtCol(col)
-  for r=19,0,-1 do
-    if self.rawBoard[i][col] ~= EMPTY_SQUARE then return r end
+  for r=0,19 do
+    if self.rows[r].row[col] ~= EMPTY_SQUARE then return 20 - r end
   end
   return 0
 end
