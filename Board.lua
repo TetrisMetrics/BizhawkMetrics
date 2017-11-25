@@ -34,6 +34,24 @@ function Board:isTetrisReady ()
   return false
 end
 
+function Board:maxHeight ()
+  local max = 0;
+  local hs = self:heights();
+  for c=0,9 do
+    if hs[c] > max then max = hs[c] end
+  end
+  return max;
+end
+
+function Board:minHeight ()
+  local min = 20;
+  local hs = self:heights();
+  for c=0,9 do
+    if hs[c] < min then min = hs[c] end
+  end
+  return min;
+end
+
 --[[
    we want to get sets of relative height diffs across rows
    possibilities we are looking for are:

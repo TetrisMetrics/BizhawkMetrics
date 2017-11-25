@@ -16,8 +16,10 @@ TetrisGame = class(function(a,startFrame,level)
   a.tetriminos     = List()
   a.clears         = List()
   a.drought        = Drought()
-  a.nrDrops        = 0
+  a.nrDrops        = -2
   a.accommodations = 0
+  a.totalMaxHeight = 0
+  a.totalMinHeight = 0
 end)
 
 function TetrisGame:dump()
@@ -27,10 +29,12 @@ function TetrisGame:dump()
     --", clears: "            .. self.clears:dump()                    ..
     --", droughts: "          .. self.drought.droughts:dump()          ..
     --", pauses: "            .. self.drought.pauseTimes:dump()        ..
-    ", avg clear: "         .. self.clears:average()                 ..
+    "  avg clear: "         .. self.clears:average()                 ..
+    ", avg max height: "    .. self:avgMaxHeight()                   ..
+    ", avg min height: "    .. self:avgMinHeight()                   ..
     ", avg drought: "       .. self.drought.droughts:average()       ..
     ", avg pause: "         .. self.drought.pauseTimes:average()     ..
-    ", avg accommodation: " .. self:accommodationAvg()               ..
+    ", avg accommodation: " .. self:avgAccommodation()               ..
   "}"
 end
 
@@ -49,16 +53,37 @@ function TetrisGame:addClear (nrLines)
   self.clears:pushright(nrLines)
 end
 
-function TetrisGame:addTetrimino (t)
+function TetrisGame:addTetrimino (t, board)
   self.tetriminos:pushright(t)
+  self.nrDrops = self.nrDrops + 1
+  if(board ~= nil) then
+    self:addAccommodation(board:accommodationScore())
+    self:addMaxHeight(board:maxHeight())
+    self:addMinHeight(board:minHeight())
+  end
 end
 
 function TetrisGame:addAccommodation (a)
-  self.nrDrops        = self.nrDrops + 1
   self.accommodations = self.accommodations + a
 end
 
-function TetrisGame:accommodationAvg ()
+function TetrisGame:addMaxHeight (h)
+  self.totalMaxHeight = self.totalMaxHeight + h
+end
+
+function TetrisGame:avgMaxHeight ()
+  return (self.totalMaxHeight / self.nrDrops)
+end
+
+function TetrisGame:addMinHeight (h)
+  self.totalMinHeight = self.totalMinHeight + h
+end
+
+function TetrisGame:avgMinHeight ()
+  return (self.totalMinHeight / self.nrDrops)
+end
+
+function TetrisGame:avgAccommodation ()
   return (self.accommodations / self.nrDrops)
 end
 

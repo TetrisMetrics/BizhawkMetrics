@@ -137,7 +137,6 @@ function linesClearedThisTurn()
     game:addClear(nrThisTurn)
     linesGlobal = lines
   end
-  -- print(memory.readbyte(0x0056), nrThisTurn) -- 	number of lines being cleared
   return nrThisTurn
 end
 
@@ -154,26 +153,27 @@ function updateTetriminos()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   end
   if hasTetriminoLockedThisFrame() then
-    game:addTetrimino({[getGameFrame()] = nt})
-    local drought = game.drought:endTurn(linesClearedThisTurn(), readBoard():isTetrisReady(), at)
-    local droughtLength = drought["drought"]
-    local pauseLength   = drought["paused"]
-
-    -- Write drought counter to NES RAM so that it can be displayed.
-    memory.writebyte(0x03fe, droughtLength);
-    local droughtLengthDecimal = math.floor(droughtLength / 10) * 16 + (droughtLength % 10);
-    memory.writebyte(0x03ff, droughtLengthDecimal);
-
-    -- bcd not needed here, because it's just being tested against 0 right now.
-    memory.writebyte(0x03ee, pauseLength);
-
     local b = readBoard()
-    game:addAccommodation(b:accommodationScore())
-    print("accommodation avg: ", game:accommodationAvg())
-
-    --readBoard():dump()
+    --b:dump()
+    game:addTetrimino({[getGameFrame()] = nt}, b)
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
+    handleDrought(b)
+    --print("accommodation avg: ", game:avgAccommodation())
   end
+end
+
+function handleDrought (b)
+  local drought = game.drought:endTurn(linesClearedThisTurn(), b:isTetrisReady(), at)
+  local droughtLength = drought["drought"]
+  local pauseLength   = drought["paused"]
+
+  -- Write drought counter to NES RAM so that it can be displayed.
+  memory.writebyte(0x03fe, droughtLength);
+  local droughtLengthDecimal = math.floor(droughtLength / 10) * 16 + (droughtLength % 10);
+  memory.writebyte(0x03ff, droughtLengthDecimal);
+
+  -- bcd not needed here, because it's just being tested against 0 right now.
+  memory.writebyte(0x03ee, pauseLength);
 end
 
 function main()
@@ -309,4 +309,12 @@ end
 --  end
 --end, 0x0059)
 --
-
+--
+--linesCleared = 0
+--memory.registerwrite(0x0056, 1, function ()
+--  local newVal = memory.readbyte(0x0056)
+--  if newVal ~= linesCleared then
+--    print(newVal)
+--    linesCleared = newVal
+--  end
+--end)
