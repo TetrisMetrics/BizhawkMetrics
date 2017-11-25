@@ -68,7 +68,7 @@ UNPRESSED = { [1] = true, [2] = false }
 
 --
 function updateControllerInputs()
-  local j    = joypad.get()
+  local j    = joypad.get(1)
   local diff = getTableDiffs(currentInputs, j)
   if tableLength(diff) > 0 then
     -- change the ugly diffs to just true (for pressed) and false (for unpressed)
@@ -182,7 +182,7 @@ function main()
 end
 
 game                    = nil
-currentInputs           = joypad.get()
+currentInputs           = joypad.get(1)
 gameStateGlobal         = getGameState()
 playStateGlobal         = getPlayState()
 currentTetriminoGlobal  = getTetrimino()
