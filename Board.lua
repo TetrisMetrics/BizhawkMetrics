@@ -16,8 +16,9 @@ function Board:dump()
   if r ~= -1 then print("surplus: ", self:surplus()) end
 end
 
-function Board:surplus()
-  local r = self:tetrisReadyRow()
+function Board:getSurplus(tetrisReadyRow)
+  local r = tetrisReadRow
+  if r == nil then r = self:tetrisReadyRow() end
   if r == -1 then return -1 else return self:blocksAboveRow(r-4) end
   return r
 end

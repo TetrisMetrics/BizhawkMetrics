@@ -87,9 +87,7 @@ function readBoard()
   local b = {}
   for r=0,19 do
      b[r] = {}
-    for c=0,9 do
-      b[r][c] = memory.readbyte(Addresses["Playfield"] + (10*r) + c)
-    end
+    for c=0,9 do b[r][c] = memory.readbyte(Addresses["Playfield"] + (10*r) + c) end
   end
   --print(tableToString(b))
   return Board(b)
@@ -154,16 +152,21 @@ function updateTetriminos()
   end
   if hasTetriminoLockedThisFrame() then
     local b = readBoard()
+    local tetrisReadyRow = b:tetrisReadyRow()
+    local isReady        = tetrisReadyRow ~= -1
     --b:dump()
     game:addTetrimino({[getGameFrame()] = nt}, b)
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
-    handleDrought(b)
+    handleDrought(b, isReady)
     --print("accommodation avg: ", game:avgAccommodation())
+    handleSurplus(b, tetrisReadyRow, isReady)
+
+    tetrisReadyGlobal = isReady
   end
 end
 
-function handleDrought (b)
-  local drought = game.drought:endTurn(linesClearedThisTurn(), b:tetrisReadyRow() ~= -1, at)
+function handleDrought (b, ready)
+  local drought       = game.drought:endTurn(linesClearedThisTurn(), ready, at)
   local droughtLength = drought["drought"]
   local pauseLength   = drought["paused"]
 
@@ -174,6 +177,13 @@ function handleDrought (b)
 
   -- bcd not needed here, because it's just being tested against 0 right now.
   memory.writebyte(0x03ee, pauseLength);
+end
+
+function handleSurplus(b, tetrisReadyRow, ready)
+  -- if we just became tetris ready, record the surplus
+  if(ready and not tetrisReadyGlobal) then
+    game:addSurplus(b:getSurplus(tetrisReadyRow))
+  end
 end
 
 function main()
@@ -190,6 +200,7 @@ gameStateGlobal         = getGameState()
 playStateGlobal         = getPlayState()
 currentTetriminoGlobal  = getTetrimino()
 linesGlobal             = 0
+tetrisReadyGlobal       = false
 
 
 

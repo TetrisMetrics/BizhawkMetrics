@@ -20,6 +20,8 @@ TetrisGame = class(function(a,startFrame,level)
   a.accommodations = 0
   a.totalMaxHeight = 0
   a.totalMinHeight = 0
+  a.nrTimesReady   = 0
+  a.totalSurplus   = 0
 end)
 
 function TetrisGame:dump()
@@ -35,6 +37,7 @@ function TetrisGame:dump()
     ", avg drought: "       .. self.drought.droughts:average()       ..
     ", avg pause: "         .. self.drought.pauseTimes:average()     ..
     ", avg accommodation: " .. self:avgAccommodation()               ..
+    ", avg surplus: "       .. self:avgSurplus()                     ..
   "}"
 end
 
@@ -71,12 +74,18 @@ function TetrisGame:addMaxHeight (h)
   self.totalMaxHeight = self.totalMaxHeight + h
 end
 
+function TetrisGame:addMinHeight (h)
+  self.totalMinHeight = self.totalMinHeight + h
+end
+
 function TetrisGame:avgMaxHeight ()
   return (self.totalMaxHeight / self.nrDrops)
 end
 
-function TetrisGame:addMinHeight (h)
-  self.totalMinHeight = self.totalMinHeight + h
+function TetrisGame:addSurplus (s)
+  self.nrTimesReady = self.nrTimesReady + 1
+  self.totalSurplus = self.totalSurplus + s
+  print("adding surplus", s)
 end
 
 function TetrisGame:avgMinHeight ()
@@ -85,6 +94,10 @@ end
 
 function TetrisGame:avgAccommodation ()
   return (self.accommodations / self.nrDrops)
+end
+
+function TetrisGame:avgSurplus ()
+  return (self.totalSurplus / self.nrTimesReady)
 end
 
 function TetrisGame:getPreviousTetrimino ()
