@@ -163,7 +163,7 @@ function updateTetriminos()
 end
 
 function handleDrought (b)
-  local drought = game.drought:endTurn(linesClearedThisTurn(), b:isTetrisReady(), at)
+  local drought = game.drought:endTurn(linesClearedThisTurn(), b:tetrisReadyRow() ~= -1, at)
   local droughtLength = drought["drought"]
   local pauseLength   = drought["paused"]
 

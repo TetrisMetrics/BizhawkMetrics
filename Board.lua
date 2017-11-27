@@ -6,17 +6,31 @@ EMPTY_SQUARE = 239
 Board = class(function(a, rawBoard)
   a.rawBoard = rawBoard
   a.rows = {}
-  for r=0,19 do
-    a.rows[r]=Row(r,rawBoard[r])
-  end
+  for r=0,19 do a.rows[r]=Row(r,rawBoard[r]) end
 end)
 
 function Board:dump()
   for i = 0, 19 do print(self.rows[i]:dump()) end
-  print("Tetris ready: ", self:isTetrisReady())
+  local r = self:tetrisReadyRow()
+  print("Tetris ready row: ", r + 1)
+  if r ~= -1 then print("surplus: ", self:surplus()) end
 end
 
-function Board:isTetrisReady ()
+function Board:surplus()
+  local r = self:tetrisReadyRow()
+  if r == -1 then return -1 else return self:blocksAboveRow(r-4) end
+  return r
+end
+
+function Board:blocksAboveRow(r)
+  local nr = 0
+  for i=r,0,-1 do
+    nr = nr + (self.rows[i]:nrColsFilled())
+  end
+  return nr
+end
+
+function Board:tetrisReadyRow ()
   for r=19,3,-1 do
     local col = self.rows[r]:well()
     if col ~= nil then
@@ -27,11 +41,11 @@ function Board:isTetrisReady ()
 
       if blockHasTetrisReadyWell and wellIsClosedBelow and wellIsOpenAbove then
         -- only here have we found that we are tetris ready :)
-        return true
+        return r
       end
     end
   end
-  return false
+  return -1
 end
 
 function Board:maxHeight ()
@@ -134,6 +148,14 @@ function Row:isTetrisReady () return self.well ~= nil end
 function Row:isTetrisReadyAt (col) return self.well == col end
 function Row:isEmptyAt (col)  return self.row[col] == EMPTY_SQUARE end
 function Row:isFilledAt (col) return self.row[col] ~= EMPTY_SQUARE end
+
+function Row:nrColsFilled ()
+  local nr = 0
+  for i = 0, 9 do
+    if self.row[i] ~= EMPTY_SQUARE then nr = nr + 1 end
+  end
+  return nr
+end
 
 function Row:toString()
   local s = ""

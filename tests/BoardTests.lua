@@ -38,3 +38,6 @@ end
 
 math.randomseed(os.time())
 randomBoard():dump()
+
+-- require("tests/BoardTests")
+-- randomBoard():dump()
