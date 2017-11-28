@@ -190,6 +190,7 @@ function main()
   if isGameRunning() and game ~= nil then
     updateControllerInputs();
     updateTetriminos();
+    gui.text(5,20,"Last Surplus: "..game.lastSurplus) --.."\nNext: "..memory.readbyte(0x00BF));
   end
   updateGameStateGlobals();
 end
@@ -269,7 +270,6 @@ tetrisReadyGlobal       = false
 -- the main loop. runs main function, advances frame, then loops.
 while true do
   main()
-  --what()
   --visualizeSprites()
   emu.frameadvance()
 end
@@ -292,24 +292,6 @@ end
 --end
 --
 --setUpBoardCallbacks()
-
---
---
---
---function what()
---  ----ROM Write (Compare) - If the value at ROM address 0x8614 is ever 0xA5, it changes it to 0xA9.
---  ----memory.writebyte(Addresses["TetriminoID"], 2)
---  --if(memory.readbyte(0x8614) == 165) then
---  --  --print("hi", memory.readbyte(0x8614))
---  --  memory.writebyte(0x8614, 169)
---  --end
---  --print("hi", memory.readbyte(0x0059))
---  memory.writebyte(0x0059, 3)
---  memory.writebyte(0x0079, 3)
---
---end
---
---
 --
 --event.onmemorywrite ( function()
 --  print(memory.readbyte(0x0059))

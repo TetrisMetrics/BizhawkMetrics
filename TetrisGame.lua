@@ -21,6 +21,7 @@ TetrisGame = class(function(a,startFrame,level)
   a.totalMaxHeight = 0
   a.totalMinHeight = 0
   a.nrTimesReady   = 0
+  a.lastSurplus    = 0
   a.totalSurplus   = 0
 end)
 
@@ -83,6 +84,7 @@ function TetrisGame:avgMaxHeight ()
 end
 
 function TetrisGame:addSurplus (s)
+  self.lastSurplus  = s
   self.nrTimesReady = self.nrTimesReady + 1
   self.totalSurplus = self.totalSurplus + s
   print("adding surplus", s)
