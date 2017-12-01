@@ -11,9 +11,10 @@ require ('helpers')
 
 -- TODO: Number of clicks per tetrimino and APM
 -- TODO: DAS info...
-TetrisGame = class(function(a,startFrame,level)
+TetrisGame = class(function(a,startFrame,startLevel)
   a.startFrame     = startFrame
-  a.level          = level
+  a.startLevel     = startLevel
+
   a.frames         = {}
   a.tetriminos     = List()
   a.clears         = List()
@@ -27,14 +28,18 @@ TetrisGame = class(function(a,startFrame,level)
   a.totalMaxHeight = 0
   a.totalMinHeight = 0
 
+  a.tetrisReady    = false
   a.nrTimesReady   = 0
 
   a.lastSurplus    = 0
   a.totalSurplus   = 0
 
+  a.nrLines        = 0
   a.nrClears       = 0
-  a.totalCleared   = 0
   a.tetrises       = 0
+  a.triples        = 0
+  a.doubles        = 0
+  a.singles        = 0
 
   a.totalPause     = 0
   a.nrPauses       = 0
@@ -71,11 +76,26 @@ function TetrisGame:getFrame (frame)
   return self.frames[frame - self.startFrame]
 end
 
+function TetrisGame:setTetrisReady (r)
+  self.tetrisReady = r
+end
+
+function TetrisGame:isTetrisReady ()
+  return self.tetrisReady
+end
+
+function TetrisGame:getNrLines ()
+  return self.nrLines
+end
+
 function TetrisGame:addClear (nrLines)
   self.clears:pushright(nrLines)
   self.nrClears = self.nrClears + 1
-  self.totalCleared = self.totalCleared + nrLines
+  self.nrLines  = self.nrLines + nrLines
   if nrLines == 4 then self.tetrises = self.tetrises + 1 end
+  if nrLines == 3 then self.triples  = self.triples  + 1 end
+  if nrLines == 2 then self.doubles  = self.doubles  + 1 end
+  if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
 function TetrisGame:addTetrimino (t, board)
@@ -125,7 +145,7 @@ end
 
 function TetrisGame:avgClear ()
   if self.nrClears == 0 then return 0
-  else return (self.totalCleared / self.nrClears) end
+  else return (self.nrLines / self.nrClears) end
 end
 
 function TetrisGame:avgMinHeight ()
