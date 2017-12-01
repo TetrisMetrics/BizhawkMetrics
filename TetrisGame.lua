@@ -17,15 +17,29 @@ TetrisGame = class(function(a,startFrame,level)
   a.frames         = {}
   a.tetriminos     = List()
   a.clears         = List()
+  a.droughts       = List()
+  a.pauses         = List()
   a.drought        = Drought()
-  a.nrDrops        = -2
+  a.nrDrops        = -2  -- this weird -2 is fixed when we add the first two tetriminos
+
   a.accommodations = 0
+
   a.totalMaxHeight = 0
   a.totalMinHeight = 0
+
   a.nrTimesReady   = 0
+
   a.lastSurplus    = 0
   a.totalSurplus   = 0
+
+  a.nrClears       = 0
+  a.totalCleared   = 0
   a.tetrises       = 0
+
+  a.totalPause     = 0
+  a.nrPauses       = 0
+  a.totalDrought   = 0
+  a.nrDroughts     = 0
 end)
 
 function TetrisGame:dump()
@@ -35,14 +49,14 @@ function TetrisGame:dump()
     --", clears: "            .. self.clears:dump()                    ..
     --", droughts: "          .. self.drought.droughts:dump()          ..
     --", pauses: "            .. self.drought.pauseTimes:dump()        ..
-    "  avg clear: "         .. round(self.clears:average(), 3)                 ..
-    ", avg max height: "    .. round(self:avgMaxHeight(), 2)                   ..
-    ", avg min height: "    .. round(self:avgMinHeight(), 2)                   ..
-    ", avg drought: "       .. round(self.drought.droughts:average(), 2)       ..
-    ", avg pause: "         .. round(self.drought.pauseTimes:average(), 2)     ..
-    ", avg accommodation: " .. round(self:avgAccommodation(), 3)               ..
-    ", avg surplus: "       .. round(self:avgSurplus(), 2)                     ..
-    ", conversion ratio"    .. round(self:conversionRatio(), 2)                ..
+    "  avg clear: "         .. round(self:avgClear(), 3)               ..
+    ", avg max height: "    .. round(self:avgMaxHeight(), 2)           ..
+    ", avg min height: "    .. round(self:avgMinHeight(), 2)           ..
+    ", avg drought: "       .. round(self:avgDrought(), 2)             ..
+    ", avg pause: "         .. round(self:avgPause(), 2)               ..
+    ", avg accommodation: " .. round(self:avgAccommodation(), 3)       ..
+    ", avg surplus: "       .. round(self:avgSurplus(), 2)             ..
+    ", conversion ratio"    .. round(self:conversionRatio(), 2)        ..
   "}"
 end
 
@@ -59,6 +73,8 @@ end
 
 function TetrisGame:addClear (nrLines)
   self.clears:pushright(nrLines)
+  self.nrClears = self.nrClears + 1
+  self.totalCleared = self.totalCleared + nrLines
   if nrLines == 4 then self.tetrises = self.tetrises + 1 end
 end
 
@@ -85,26 +101,56 @@ function TetrisGame:addMinHeight (h)
 end
 
 function TetrisGame:avgMaxHeight ()
-  return (self.totalMaxHeight / self.nrDrops)
+  if self.nrDrops == 0 then return 0
+  else return (self.totalMaxHeight / self.nrDrops) end
 end
 
 function TetrisGame:addSurplus (s)
   self.lastSurplus  = s
   self.nrTimesReady = self.nrTimesReady + 1
   self.totalSurplus = self.totalSurplus + s
-  print("adding surplus", s)
+end
+
+function TetrisGame:addDrought (d)
+  self.droughts:pushright(drought)
+  self.totalDrought = self.totalDrought + d
+  self.nrDroughts = self.nrDroughts + 1
+end
+
+function TetrisGame:addPause (p)
+  self.pauses:pushright(p)
+  self.totalPause = self.totalPause + p
+  self.nrPauses = self.nrPauses + 1
+end
+
+function TetrisGame:avgClear ()
+  if self.nrClears == 0 then return 0
+  else return (self.totalCleared / self.nrClears) end
 end
 
 function TetrisGame:avgMinHeight ()
-  return (self.totalMinHeight / self.nrDrops)
+  if self.nrDrops == 0 then return 0
+  else return (self.totalMinHeight / self.nrDrops) end
 end
 
 function TetrisGame:avgAccommodation ()
-  return (self.accommodations / self.nrDrops)
+  if self.nrDrops == 0 then return 0
+  else return (self.accommodations / self.nrDrops) end
 end
 
 function TetrisGame:avgSurplus ()
-  return (self.totalSurplus / self.nrTimesReady)
+  if self.nrTimesReady == 0 then return 0
+  else return (self.totalSurplus / self.nrTimesReady) end
+end
+
+function TetrisGame:avgDrought ()
+  if self.nrDroughts == 0 then return 0
+  else return (self.totalDrought / self.nrDroughts) end
+end
+
+function TetrisGame:avgPause ()
+  if self.nrPauses == 0 then return 0
+  else return (self.totalPause / self.nrPauses) end
 end
 
 function TetrisGame:conversionRatio()

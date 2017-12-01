@@ -64,13 +64,3 @@ function List:popright ()
   self.last = last - 1
   return value
 end
-
-function List:average()
-  local count = 0
-  local total = 0
-  for _,k in pairs(self) do
-    count = count + 1
-    total = total + k
-  end
-  return total/(count-2)
-end

@@ -167,7 +167,7 @@ function updateTetriminos()
 end
 
 function handleDrought (lines, ready, at)
-  local drought       = game.drought:endTurn(lines, ready, at)
+  local drought       = game.drought:endTurn(lines, ready, at, game)
   local droughtLength = drought["drought"]
   local pauseLength   = drought["paused"]
 
@@ -192,14 +192,15 @@ function haveBecomeReadyThisTurn (ready, linesThisTurn)
 end
 
 function printMetrics()
+  gui.text(5,10,"DAS:".. memory.readbyte(0x0046))
   gui.text(5,20,"Conversion %:"..round(game:conversionRatio(), 2))
-  gui.text(5,30,"Avg Clear:   "..round(game.clears:average(), 2))
+  gui.text(5,30,"Avg Clear:   "..round(game:avgClear(), 2))
   gui.text(5,40,"Accmdation:  "..round(game:avgAccommodation(), 2))
   gui.text(5,50,"Avg max ht:  "..round(game:avgMaxHeight(), 2))
   gui.text(5,60,"Avg min ht:  "..round(game:avgMinHeight(), 2))
   gui.text(5,70,"Avg Surplus: "..round(game:avgSurplus(), 2))
-  gui.text(5,80,"Avg drought: "..round(game.drought.droughts:average(), 2))
-  gui.text(5,90,"Avg pause:   "..round(game.drought.pauseTimes:average(), 2))
+  gui.text(5,80,"Avg drought: "..round(game:avgDrought(), 2))
+  gui.text(5,90,"Avg pause:   "..round(game:avgPause(), 2))
 end
 
 function main()
@@ -220,6 +221,12 @@ linesGlobal             = 0
 tetrisReadyGlobal       = false
 
 
+-- the main loop. runs main function, advances frame, then loops.
+while true do
+  main()
+  --visualizeSprites()
+  emu.frameadvance()
+end
 
 --
 ---- Memory domains on NES:
@@ -283,12 +290,6 @@ tetrisReadyGlobal       = false
 --
 --print( "hardware-sprite-visualizer loaded" )
 
--- the main loop. runs main function, advances frame, then loops.
-while true do
-  main()
-  --visualizeSprites()
-  emu.frameadvance()
-end
 
 --boardGlobal = nil
 --readBoard()
