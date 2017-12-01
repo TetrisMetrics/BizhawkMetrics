@@ -151,22 +151,23 @@ function updateTetriminos()
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   end
   if hasTetriminoLockedThisFrame() then
+    local lines = linesClearedThisTurn()
     local b = readBoard()
     local tetrisReadyRow = b:tetrisReadyRow()
     local isReady        = tetrisReadyRow ~= -1
     --b:dump()
     game:addTetrimino({[getGameFrame()] = nt}, b)
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
-    handleDrought(b, isReady)
+    handleDrought(lines, isReady, at)
     --print("accommodation avg: ", game:avgAccommodation())
-    handleSurplus(b, tetrisReadyRow, isReady)
+    handleSurplus(b, lines, tetrisReadyRow, isReady)
 
     tetrisReadyGlobal = isReady
   end
 end
 
-function handleDrought (b, ready)
-  local drought       = game.drought:endTurn(linesClearedThisTurn(), ready, at)
+function handleDrought (lines, ready, at)
+  local drought       = game.drought:endTurn(lines, ready, at)
   local droughtLength = drought["drought"]
   local pauseLength   = drought["paused"]
 
@@ -179,18 +180,33 @@ function handleDrought (b, ready)
   memory.writebyte(0x03ee, pauseLength);
 end
 
-function handleSurplus(b, tetrisReadyRow, ready)
+function handleSurplus(b, lines, tetrisReadyRow, ready)
   -- if we just became tetris ready, record the surplus
-  if(ready and not tetrisReadyGlobal) then
+  if(haveBecomeReadyThisTurn(ready, lines)) then
     game:addSurplus(b:getSurplus(tetrisReadyRow))
   end
+end
+
+function haveBecomeReadyThisTurn (ready, linesThisTurn)
+  return (ready and not tetrisReadyGlobal) or (ready and linesThisTurn == 4)
+end
+
+function printMetrics()
+  gui.text(5,20,"Conversion %:"..round(game:conversionRatio(), 2))
+  gui.text(5,30,"Avg Clear:   "..round(game.clears:average(), 2))
+  gui.text(5,40,"Accmdation:  "..round(game:avgAccommodation(), 2))
+  gui.text(5,50,"Avg max ht:  "..round(game:avgMaxHeight(), 2))
+  gui.text(5,60,"Avg min ht:  "..round(game:avgMinHeight(), 2))
+  gui.text(5,70,"Avg Surplus: "..round(game:avgSurplus(), 2))
+  gui.text(5,80,"Avg drought: "..round(game.drought.droughts:average(), 2))
+  gui.text(5,90,"Avg pause:   "..round(game.drought.pauseTimes:average(), 2))
 end
 
 function main()
   if isGameRunning() and game ~= nil then
     updateControllerInputs();
     updateTetriminos();
-    gui.text(5,20,"Last Surplus: "..game.lastSurplus) --.."\nNext: "..memory.readbyte(0x00BF));
+    printMetrics();
   end
   updateGameStateGlobals();
 end

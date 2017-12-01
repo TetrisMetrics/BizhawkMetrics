@@ -9,6 +9,8 @@ require ("Drought")
 require ('List')
 require ('helpers')
 
+-- TODO: Number of clicks per tetrimino and APM
+-- TODO: DAS info...
 TetrisGame = class(function(a,startFrame,level)
   a.startFrame     = startFrame
   a.level          = level
@@ -23,6 +25,7 @@ TetrisGame = class(function(a,startFrame,level)
   a.nrTimesReady   = 0
   a.lastSurplus    = 0
   a.totalSurplus   = 0
+  a.tetrises       = 0
 end)
 
 function TetrisGame:dump()
@@ -32,13 +35,14 @@ function TetrisGame:dump()
     --", clears: "            .. self.clears:dump()                    ..
     --", droughts: "          .. self.drought.droughts:dump()          ..
     --", pauses: "            .. self.drought.pauseTimes:dump()        ..
-    "  avg clear: "         .. self.clears:average()                 ..
-    ", avg max height: "    .. self:avgMaxHeight()                   ..
-    ", avg min height: "    .. self:avgMinHeight()                   ..
-    ", avg drought: "       .. self.drought.droughts:average()       ..
-    ", avg pause: "         .. self.drought.pauseTimes:average()     ..
-    ", avg accommodation: " .. self:avgAccommodation()               ..
-    ", avg surplus: "       .. self:avgSurplus()                     ..
+    "  avg clear: "         .. round(self.clears:average(), 3)                 ..
+    ", avg max height: "    .. round(self:avgMaxHeight(), 2)                   ..
+    ", avg min height: "    .. round(self:avgMinHeight(), 2)                   ..
+    ", avg drought: "       .. round(self.drought.droughts:average(), 2)       ..
+    ", avg pause: "         .. round(self.drought.pauseTimes:average(), 2)     ..
+    ", avg accommodation: " .. round(self:avgAccommodation(), 3)               ..
+    ", avg surplus: "       .. round(self:avgSurplus(), 2)                     ..
+    ", conversion ratio"    .. round(self:conversionRatio(), 2)                ..
   "}"
 end
 
@@ -55,6 +59,7 @@ end
 
 function TetrisGame:addClear (nrLines)
   self.clears:pushright(nrLines)
+  if nrLines == 4 then self.tetrises = self.tetrises + 1 end
 end
 
 function TetrisGame:addTetrimino (t, board)
@@ -100,6 +105,16 @@ end
 
 function TetrisGame:avgSurplus ()
   return (self.totalSurplus / self.nrTimesReady)
+end
+
+function TetrisGame:conversionRatio()
+  if self.nrTimesReady == 0 then return 1
+  else return self.tetrises / self.nrTimesReady end
+end
+
+function round(num, numDecimalPlaces)
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
 end
 
 function TetrisGame:getPreviousTetrimino ()
