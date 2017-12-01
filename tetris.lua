@@ -135,7 +135,6 @@ end
 function updateTetriminos()
   local at = getTetrimino()
   local nt = getNextTetrimino()
-
   -- when a game first starts, the tetriminos are always set to 19 and 14.
   -- so we need to detect when this changes, and add the first tetriminos to the game.
   if (currentTetriminoGlobal == 19 and at ~= 19) then
@@ -159,13 +158,21 @@ function handleLock (at, nt)
   --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   handleDrought(linesThisTurn, isReady, at)
   handleSurplus(b, linesThisTurn, tetrisReadyRow, isReady)
-
   game:setTetrisReady(isReady)
 end
 
 function handleDrought (lines, ready, at)
   local drought = game.drought:endTurn(lines, ready, at, game)
   displayDroughtOnNES(drought)
+end
+
+function handleSurplus(b, lines, tetrisReadyRow, ready)
+  local haveBecomeReadyThisTurn =
+    (ready and not game:isTetrisReady()) or (ready and linesThisTurn == 4)
+  -- if we just became tetris ready, record the surplus
+  if(haveBecomeReadyThisTurn) then
+    game:addSurplus(b:getSurplus(tetrisReadyRow))
+  end
 end
 
 function displayDroughtOnNES(drought)
@@ -181,33 +188,38 @@ function displayDroughtOnNES(drought)
   memory.writebyte(0x03ee, pauseLength);
 end
 
-function handleSurplus(b, lines, tetrisReadyRow, ready)
-  -- if we just became tetris ready, record the surplus
-  if(haveBecomeReadyThisTurn(ready, lines)) then
-    game:addSurplus(b:getSurplus(tetrisReadyRow))
-  end
-end
-
-function haveBecomeReadyThisTurn (ready, linesThisTurn)
-  return (ready and not game:isTetrisReady()) or (ready and linesThisTurn == 4)
-end
-
 function printMetrics()
-  gui.text(5,10,"DAS:"         .. memory.readbyte(0x0046))
 
-  gui.text(5,20,"Conversion %:"..round(game:conversionRatio(), 2))
-  gui.text(5,30,"Avg Clear:   "..round(game:avgClear(), 2))
-  gui.text(5,40,"Accmdation:  "..round(game:avgAccommodation(), 2))
-  gui.text(5,50,"Avg max ht:  "..round(game:avgMaxHeight(), 2))
-  gui.text(5,60,"Avg min ht:  "..round(game:avgMinHeight(), 2))
-  gui.text(5,70,"Avg Surplus: "..round(game:avgSurplus(), 2))
-  gui.text(5,80,"Avg drought: "..round(game:avgDrought(), 2))
-  gui.text(5,90,"Avg pause:   "..round(game:avgPause(), 2))
 
-  gui.text(5,110,"Singles:  "..game.singles)
-  gui.text(5,120,"Doubles:  "..game.doubles)
-  gui.text(5,130,"Triples:  "..game.triples)
-  gui.text(5,140,"Tetrises: "..game.tetrises)
+  gui.drawrect(10,20,85,215,"gray", "red")
+
+  local x1 = 13
+  local y1 = 23
+
+  local das = memory.readbyte(0x0046)
+  local dasColor
+  if das == 0 then dasColor = "red" end
+  gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), dasColor)
+
+  local y2 = y1+20
+
+  gui.text(x1,y2+ 0, "Singles:  "..game.singles)
+  gui.text(x1,y2+10, "Doubles:  " ..game.doubles)
+  gui.text(x1,y2+20, "Triples:  "..game.triples)
+  gui.text(x1,y2+30, "Tetrises: "..game.tetrises)
+
+  gui.text(x1,y2+50, "Averages:")
+
+  gui.text(x1,y2+70, "Cnversion:"..round(game:conversionRatio(), 2))
+  gui.text(x1,y2+80, "Clear:   "..round(game:avgClear(), 2))
+  gui.text(x1,y2+90, "Accmdation:"..round(game:avgAccommodation(), 2))
+  gui.text(x1,y2+100, "Max ht: " ..round(game:avgMaxHeight(), 2))
+  gui.text(x1,y2+110, "Min ht:  "..round(game:avgMinHeight(), 2))
+  gui.text(x1,y2+120, "Surplus: "..round(game:avgSurplus(), 2))
+  gui.text(x1,y2+130, "Drought: "..round(game:avgDrought(), 2))
+  gui.text(x1,y2+140, "Pause:  " ..round(game:avgPause(), 2))
+
+
 end
 
 function main()
