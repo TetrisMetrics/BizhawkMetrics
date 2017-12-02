@@ -168,7 +168,7 @@ function handleDrought (lines, ready, at)
   displayDroughtOnNES(drought)
 end
 
-function handleSurplus(b, lines, tetrisReadyRow, ready)
+function handleSurplus(b, linesThisTurn, tetrisReadyRow, ready)
   local haveBecomeReadyThisTurn =
     (ready and not game:isTetrisReady()) or (ready and linesThisTurn == 4)
   -- if we just became tetris ready, record the surplus
@@ -223,8 +223,7 @@ function printMetrics()
   gui.text(x1,y2+120, "Surplus: "..round(game:avgSurplus(), 2), "white", "black")
   gui.text(x1,y2+130, "Drought: "..round(game:avgDrought(), 2), "white", "black")
   gui.text(x1,y2+140, "Pause:  " ..round(game:avgPause(), 2), "white", "black")
-
-
+  gui.text(x1,y2+150, "Readinses:"..round(game:avgReadinessDistance(), 2), "white", "black")
 end
 
 function main()
