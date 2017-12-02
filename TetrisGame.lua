@@ -12,57 +12,56 @@ require ('helpers')
 -- TODO: Number of clicks per tetrimino and APM
 -- TODO: DAS info...
 TetrisGame = class(function(a,startFrame,startLevel)
-  a.startFrame      = startFrame
-  a.startLevel      = startLevel
+  a.startFrame      = startFrame -- the exact NES frame the game started on.
+  a.startLevel      = startLevel -- the level the game started on.
 
-  a.frames          = {}
-  a.tetriminos      = List()
-  a.clears          = List()
-  a.droughts        = List()
-  a.pauses          = List()
-  a.drought         = Drought()
+  a.drought         = Drought() -- the drought object helps calculate droughts
+
+  a.frames          = {}     -- list of everything that happened every frame. indexed by frame nr.
+  a.tetriminos      = List() -- list of all the tetriminos that spawned. in order, and on what frame.
+  a.clears          = List() -- list of every clear that happened. in order.
   a.nrDrops         = -2  -- this weird -2 is fixed when we add the first two tetriminos
 
-  a.accommodations  = 0
+  a.accommodations  = 0 -- really this is accommodation total. total across all drops.
 
-  a.totalMaxHeight  = 0
-  a.totalMinHeight  = 0
+  a.totalMaxHeight  = 0 -- the total of the max heights at every drop
+  a.totalMinHeight  = 0 -- he total of the min heights at every drop
 
-  a.tetrisReady     = false
-  a.nrTimesReady    = 0
+  a.tetrisReady     = false -- is the board tetris ready or not
+  a.nrTimesReady    = 0     -- how many times the board has been tetris ready
 
   a.lastTetris      = 0 -- tetrimino/drop count when we last got a tetris
   a.readyDistance   = 0 -- total distance between last tetris and tetris readiness.
 
-  a.lastSurplus     = 0
-  a.totalSurplus    = 0
+  a.lastSurplus     = 0 -- number of blocks above perfection the last time we became tetris ready.
+  a.totalSurplus    = 0 -- the total of all of those
 
-  a.nrLines         = 0
-  a.nrClears        = 0
-  a.tetrises        = 0
-  a.triples         = 0
-  a.doubles         = 0
-  a.singles         = 0
+  a.nrLines         = 0 -- number of lines cleared so far
+  a.nrClears        = 0 -- number of times lines have been cleared (singles, doubles, ...)
+  a.tetrises        = 0 -- number of tetrises scored so far
+  a.triples         = 0 -- number of triples scored so far
+  a.doubles         = 0 -- number of doubles scored so far
+  a.singles         = 0 -- number of singles scored so far
 
-  a.totalPause      = 0
-  a.nrPauses        = 0
-  a.totalDrought    = 0
-  a.nrDroughts      = 0
+  a.totalPause      = 0 -- total amount of time (blocks dropped) that a tetris ready well has been covered
+  a.nrPauses        = 0 -- total number of times that a tetris ready well has been covered up
+  a.totalDrought    = 0 -- total number of blocks dropped until a line comes, WHEN we become tetris ready.
+  a.nrDroughts      = 0 -- TODO: this seems like it should be the same as nrTimesReady. check.
 end)
 
 function TetrisGame:dump()
   print("Game:")
-  --print("tetriminos: "          .. self.tetriminos:dump())
-  --print("frames: "              .. tableToList(self.frames):dump())
-  print("  avg clear: "         .. round(self:avgClear(), 3))
-  print("  avg accommodation: " .. round(self:avgAccommodation(), 3))
-  print("  avg max height: "    .. round(self:avgMaxHeight(), 2))
-  print("  avg min height: "    .. round(self:avgMinHeight(), 2))
-  print("  avg drought: "       .. round(self:avgDrought(), 2))
-  print("  avg pause: "         .. round(self:avgPause(), 2))
-  print("  avg surplus: "       .. round(self:avgSurplus(), 2))
-  print("  conversion ratio"    .. round(self:conversionRatio(), 2))
-  print("  avg ready distance"  .. round(self:avgReadinessDistance(), 2))
+  --print("tetriminos: "             .. self.tetriminos:dump())
+  --print("frames: "                 .. tableToList(self.frames):dump())
+  print("  avg clear: "          .. round(self:avgClear(), 3))
+  print("  avg accommodation: "  .. round(self:avgAccommodation(), 3))
+  print("  avg max height: "     .. round(self:avgMaxHeight(), 2))
+  print("  avg min height: "     .. round(self:avgMinHeight(), 2))
+  print("  avg drought: "        .. round(self:avgDrought(), 2))
+  print("  avg pause: "          .. round(self:avgPause(), 2))
+  print("  avg surplus: "        .. round(self:avgSurplus(), 2))
+  print("  conversion ratio: "   .. round(self:conversionRatio(), 2))
+  print("  avg ready distance: " .. round(self:avgReadinessDistance(), 2))
 end
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
@@ -138,13 +137,11 @@ function TetrisGame:addSurplus (s)
 end
 
 function TetrisGame:addDrought (d)
-  self.droughts:pushright(drought)
   self.totalDrought = self.totalDrought + d
   self.nrDroughts = self.nrDroughts + 1
 end
 
 function TetrisGame:addPause (p)
-  self.pauses:pushright(p)
   self.totalPause = self.totalPause + p
   self.nrPauses = self.nrPauses + 1
 end
