@@ -5,6 +5,8 @@ require("Drought")
 require("helpers")
 require("TetrisGame")
 
+local displayMetrics = input.popup("Display Metrics?")
+
 ButtonNames = {"P1 A", "P1 B", "P1 Up", "P1 Down", "P1 Left", "P1 Right"}
 
 Addresses = {
@@ -121,7 +123,7 @@ function updateGameStateGlobals()
 
   if(ending) then
     print("\n" .. "game ended on frame " .. emu.framecount() .. "\n")
-    if(game ~= nil) then print(game:dump()) end
+    if(game ~= nil) then game:dump() end
   end
 end
 
@@ -190,34 +192,37 @@ end
 
 function printMetrics()
 
+  if displayMetrics == "no" then return; end
 
-  gui.drawrect(10,20,85,215,"gray", "red")
+  local red = "#a81605"
+
+  gui.drawrect(10,20,85,215,"black", red)
 
   local x1 = 13
   local y1 = 23
 
   local das = memory.readbyte(0x0046)
-  local dasColor
-  if das == 0 then dasColor = "red" end
-  gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), dasColor)
+  local dasBackgroundColor
+  if das < 10 then dasBackgroundColor = red else dasBackgroundColor = "#207005" end
+  gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
 
   local y2 = y1+20
 
-  gui.text(x1,y2+ 0, "Singles:  "..game.singles)
-  gui.text(x1,y2+10, "Doubles:  " ..game.doubles)
-  gui.text(x1,y2+20, "Triples:  "..game.triples)
-  gui.text(x1,y2+30, "Tetrises: "..game.tetrises)
+  gui.text(x1,y2+ 0, "Singles:  "..game.singles, "white", "black")
+  gui.text(x1,y2+10, "Doubles:  " ..game.doubles, "white", "black")
+  gui.text(x1,y2+20, "Triples:  "..game.triples, "white", "black")
+  gui.text(x1,y2+30, "Tetrises: "..game.tetrises, "white", "black")
 
-  gui.text(x1,y2+50, "Averages:")
+  gui.text(x1,y2+50, "AVERAGES:", "white", "black")
 
-  gui.text(x1,y2+70, "Cnversion:"..round(game:conversionRatio(), 2))
-  gui.text(x1,y2+80, "Clear:   "..round(game:avgClear(), 2))
-  gui.text(x1,y2+90, "Accmdation:"..round(game:avgAccommodation(), 2))
-  gui.text(x1,y2+100, "Max ht: " ..round(game:avgMaxHeight(), 2))
-  gui.text(x1,y2+110, "Min ht:  "..round(game:avgMinHeight(), 2))
-  gui.text(x1,y2+120, "Surplus: "..round(game:avgSurplus(), 2))
-  gui.text(x1,y2+130, "Drought: "..round(game:avgDrought(), 2))
-  gui.text(x1,y2+140, "Pause:  " ..round(game:avgPause(), 2))
+  gui.text(x1,y2+70, "Cnversion:"..round(game:conversionRatio(), 2), "white", "black")
+  gui.text(x1,y2+80, "Clear:   "..round(game:avgClear(), 2), "white", "black")
+  gui.text(x1,y2+90, "Accmdation:"..round(game:avgAccommodation(), 2), "white", "black")
+  gui.text(x1,y2+100, "Max ht: " ..round(game:avgMaxHeight(), 2), "white", "black")
+  gui.text(x1,y2+110, "Min ht:  "..round(game:avgMinHeight(), 2), "white", "black")
+  gui.text(x1,y2+120, "Surplus: "..round(game:avgSurplus(), 2), "white", "black")
+  gui.text(x1,y2+130, "Drought: "..round(game:avgDrought(), 2), "white", "black")
+  gui.text(x1,y2+140, "Pause:  " ..round(game:avgPause(), 2), "white", "black")
 
 
 end

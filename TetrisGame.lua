@@ -12,57 +12,57 @@ require ('helpers')
 -- TODO: Number of clicks per tetrimino and APM
 -- TODO: DAS info...
 TetrisGame = class(function(a,startFrame,startLevel)
-  a.startFrame     = startFrame
-  a.startLevel     = startLevel
+  a.startFrame      = startFrame
+  a.startLevel      = startLevel
 
-  a.frames         = {}
-  a.tetriminos     = List()
-  a.clears         = List()
-  a.droughts       = List()
-  a.pauses         = List()
-  a.drought        = Drought()
-  a.nrDrops        = -2  -- this weird -2 is fixed when we add the first two tetriminos
+  a.frames          = {}
+  a.tetriminos      = List()
+  a.clears          = List()
+  a.droughts        = List()
+  a.pauses          = List()
+  a.drought         = Drought()
+  a.nrDrops         = -2  -- this weird -2 is fixed when we add the first two tetriminos
 
-  a.accommodations = 0
+  a.accommodations  = 0
 
-  a.totalMaxHeight = 0
-  a.totalMinHeight = 0
+  a.totalMaxHeight  = 0
+  a.totalMinHeight  = 0
 
-  a.tetrisReady    = false
-  a.nrTimesReady   = 0
+  a.tetrisReady     = false
+  a.lastTetrisReady = nil
+  a.nrTimesReady    = 0
 
-  a.lastSurplus    = 0
-  a.totalSurplus   = 0
+  a.lastSurplus     = 0
+  a.totalSurplus    = 0
 
-  a.nrLines        = 0
-  a.nrClears       = 0
-  a.tetrises       = 0
-  a.triples        = 0
-  a.doubles        = 0
-  a.singles        = 0
+  a.nrLines         = 0
+  a.nrClears        = 0
+  a.tetrises        = 0
+  a.triples         = 0
+  a.doubles         = 0
+  a.singles         = 0
 
-  a.totalPause     = 0
-  a.nrPauses       = 0
-  a.totalDrought   = 0
-  a.nrDroughts     = 0
+  a.totalPause      = 0
+  a.nrPauses        = 0
+  a.totalDrought    = 0
+  a.nrDroughts      = 0
 end)
 
 function TetrisGame:dump()
-  return "Game{" ..
+  print("Game")
     --"tetriminos: "          .. self.tetriminos:dump()                ..
     --", frames: "            .. tableToList(self.frames):dump()       ..
     --", clears: "            .. self.clears:dump()                    ..
     --", droughts: "          .. self.drought.droughts:dump()          ..
     --", pauses: "            .. self.drought.pauseTimes:dump()        ..
-    "  avg clear: "         .. round(self:avgClear(), 3)               ..
-    ", avg max height: "    .. round(self:avgMaxHeight(), 2)           ..
-    ", avg min height: "    .. round(self:avgMinHeight(), 2)           ..
-    ", avg drought: "       .. round(self:avgDrought(), 2)             ..
-    ", avg pause: "         .. round(self:avgPause(), 2)               ..
-    ", avg accommodation: " .. round(self:avgAccommodation(), 3)       ..
-    ", avg surplus: "       .. round(self:avgSurplus(), 2)             ..
-    ", conversion ratio"    .. round(self:conversionRatio(), 2)        ..
-  "}"
+  print("avg clear: "         .. round(self:avgClear(), 3))
+  print("avg max height: "    .. round(self:avgMaxHeight(), 2))
+  print("avg min height: "    .. round(self:avgMinHeight(), 2))
+  print("avg drought: "       .. round(self:avgDrought(), 2))
+  print("avg pause: "         .. round(self:avgPause(), 2))
+  print("avg accommodation: " .. round(self:avgAccommodation(), 3))
+  print("avg surplus: "       .. round(self:avgSurplus(), 2))
+  print("conversion ratio"    .. round(self:conversionRatio(), 2))
 end
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
