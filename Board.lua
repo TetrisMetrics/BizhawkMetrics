@@ -15,12 +15,7 @@ function readBoard(memory)
   for r=0,19 do
     b[r] = {}
     for c=0,9 do
-      local id = memory.readbyte(playfieldAddr + (10*r) + c)
-      if id ~= EMPTY_SQUARE then
-        local tColor = fif(isOdd(r+c), 124, 125)
-        memory.writebyte(playfieldAddr + (10*r) + c, tColor)
-      end
-      b[r][c] = id
+      b[r][c] = memory.readbyte(playfieldAddr + (10*r) + c)
     end
   end
   return Board(b)
