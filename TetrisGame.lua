@@ -17,10 +17,10 @@ TetrisGame = class(function(a,startFrame,startLevel)
 
   a.drought         = Drought() -- the drought object helps calculate droughts
 
-  a.frames          = {}     -- list of everything that happened every frame. indexed by frame nr.
-  a.tetriminos      = List() -- list of all the tetriminos that spawned. in order, and on what frame.
-  a.clears          = List() -- list of every clear that happened. in order.
-  a.nrDrops         = -2  -- this weird -2 is fixed when we add the first two tetriminos
+  a.frames          = {} -- list of everything that happened every frame. indexed by frame nr.
+  a.tetriminos      = {} -- list of all the tetriminos that spawned, indexed by frame.
+  a.clears          = {} -- list of every clear that happened, indexed by frame.
+  a.nrDrops         = -2 -- this weird -2 is fixed when we add the first two tetriminos
 
   a.accommodations  = 0 -- really this is accommodation total. total across all drops.
 
@@ -50,9 +50,10 @@ TetrisGame = class(function(a,startFrame,startLevel)
 end)
 
 function TetrisGame:dump()
-  print("Game:")
-  --print("tetriminos: "             .. self.tetriminos:dump())
-  --print("frames: "                 .. tableToList(self.frames):dump())
+  --print("Game:")
+  --print("tetriminos: "           .. tableToList(self.tetriminos):dump())
+  --print("frames: "               .. tableToList(self.frames):dump())
+  print("clears: "               .. tableToList(self.clears):dump())
   print("  avg clear: "          .. round(self:avgClear(), 3))
   print("  avg accommodation: "  .. round(self:avgAccommodation(), 3))
   print("  avg max height: "     .. round(self:avgMaxHeight(), 2))
@@ -87,8 +88,8 @@ function TetrisGame:getNrLines ()
   return self.nrLines
 end
 
-function TetrisGame:addClear (nrLines)
-  self.clears:pushright(nrLines)
+function TetrisGame:addClear (frame, nrLines)
+  self.clears[frame] = nrLines
   self.nrClears = self.nrClears + 1
   self.nrLines  = self.nrLines + nrLines
   if nrLines == 4 then
@@ -100,8 +101,10 @@ function TetrisGame:addClear (nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
-function TetrisGame:addTetrimino (t, board)
-  self.tetriminos:pushright(t)
+--    game:addTetrimino(getGameFrame(), at)
+
+function TetrisGame:addTetrimino (frame, t, board)
+  self.tetriminos[frame] = at
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
     self:addAccommodation(board:accommodationScore())
@@ -189,21 +192,6 @@ end
 function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
   return math.floor(num * mult + 0.5) / mult
-end
-
-function TetrisGame:getPreviousTetrimino ()
-  local t = self.tetriminos:peekright(-2)
-  if t ~= nil then return getFirstValueInTable(t) end
-end
-
-function TetrisGame:getActiveTetrimino ()
-  local t = self.tetriminos:peekright(-1)
-  if t ~= nil then return getFirstValueInTable(t) end
-end
-
-function TetrisGame:getNextTetrimino ()
-  local t = self.tetriminos:peekright(0)
-  if t ~= nil then return getFirstValueInTable(t) end
 end
 
 TetriminosById = {

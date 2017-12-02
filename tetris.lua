@@ -140,8 +140,8 @@ function updateTetriminos()
   -- when a game first starts, the tetriminos are always set to 19 and 14.
   -- so we need to detect when this changes, and add the first tetriminos to the game.
   if (currentTetriminoGlobal == 19 and at ~= 19) then
-    game:addTetrimino({[getGameFrame()] = at})
-    game:addTetrimino({[getGameFrame()] = nt})
+    game:addTetrimino(getGameFrame(), at)
+    game:addTetrimino(getGameFrame(), nt)
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(at))
     --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   end
@@ -151,12 +151,12 @@ end
 
 function handleLock (at, nt)
   local linesThisTurn = linesClearedThisTurn()
-  if linesThisTurn > 0 then game:addClear(linesThisTurn) end
+  if linesThisTurn > 0 then game:addClear(getGameFrame(), linesThisTurn) end
   local b = readBoard()
   --b:dump()
   local tetrisReadyRow = b:tetrisReadyRow()
   local isReady        = tetrisReadyRow ~= -1
-  game:addTetrimino({[getGameFrame()] = nt}, b)
+  game:addTetrimino(getGameFrame(), nt, b)
   --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   handleDrought(linesThisTurn, isReady, at)
   handleSurplus(b, linesThisTurn, tetrisReadyRow, isReady)
