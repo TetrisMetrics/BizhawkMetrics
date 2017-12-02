@@ -47,22 +47,26 @@ TetrisGame = class(function(a,startFrame,startLevel)
   a.nrPauses        = 0 -- total number of times that a tetris ready well has been covered up
   a.totalDrought    = 0 -- total number of blocks dropped until a line comes, WHEN we become tetris ready.
   a.nrDroughts      = 0 -- TODO: this seems like it should be the same as nrTimesReady. check.
+
+  a.nrPresses       = -2 -- Start gets pressed and unpressed to start the game, and we ignore those.
+  a.nrPressesPerTet = 0
 end)
 
 function TetrisGame:dump()
   --print("Game:")
-  --print("tetriminos: "           .. tableToList(self.tetriminos):dump())
-  --print("frames: "               .. tableToList(self.frames):dump())
-  print("clears: "               .. tableToList(self.clears):dump())
-  print("  avg clear: "          .. round(self:avgClear(), 3))
-  print("  avg accommodation: "  .. round(self:avgAccommodation(), 3))
-  print("  avg max height: "     .. round(self:avgMaxHeight(), 2))
-  print("  avg min height: "     .. round(self:avgMinHeight(), 2))
-  print("  avg drought: "        .. round(self:avgDrought(), 2))
-  print("  avg pause: "          .. round(self:avgPause(), 2))
-  print("  avg surplus: "        .. round(self:avgSurplus(), 2))
-  print("  conversion ratio: "   .. round(self:conversionRatio(), 2))
-  print("  avg ready distance: " .. round(self:avgReadinessDistance(), 2))
+  --print("tetriminos: "              .. tableToList(self.tetriminos):dump())
+  --print("frames: "                  .. tableToList(self.frames):dump())
+  print("clears: "                  .. tableToList(self.clears):dump())
+  print("  avg clear: "             .. round(self:avgClear(), 3))
+  print("  avg accommodation: "     .. round(self:avgAccommodation(), 3))
+  print("  avg max height: "        .. round(self:avgMaxHeight(), 2))
+  print("  avg min height: "        .. round(self:avgMinHeight(), 2))
+  print("  avg drought: "           .. round(self:avgDrought(), 2))
+  print("  avg pause: "             .. round(self:avgPause(), 2))
+  print("  avg surplus: "           .. round(self:avgSurplus(), 2))
+  print("  conversion ratio: "      .. round(self:conversionRatio(), 2))
+  print("  avg ready distance: "    .. round(self:avgReadinessDistance(), 2))
+  print("  avg presses (per tet): " .. round(self:avgPressesPerTetrimino(), 2))
 end
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
@@ -70,6 +74,9 @@ end
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
 function TetrisGame:addFrame (frame, diffs)
   self.frames[frame - self.startFrame] = diffs
+  if diffs ~= nil then
+    self.nrPresses = self.nrPresses + tableLength(diffs)
+  end
 end
 
 function TetrisGame:getFrame (frame)
@@ -107,6 +114,8 @@ function TetrisGame:addTetrimino (frame, t, board)
   self.tetriminos[frame] = at
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
+    --print("self.nrPresses", self.nrPresses, "self.nrDrops", self.nrDrops)
+    self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
     self:addAccommodation(board:accommodationScore())
     self:addMaxHeight(board:maxHeight())
     self:addMinHeight(board:minHeight())
@@ -182,6 +191,10 @@ end
 function TetrisGame:avgReadinessDistance ()
   if self.nrTimesReady == 0 then return 0
   else return (self.readyDistance / self.nrTimesReady) end
+end
+
+function TetrisGame:avgPressesPerTetrimino ()
+  return self.nrPressesPerTet
 end
 
 function TetrisGame:conversionRatio()

@@ -80,7 +80,6 @@ function updateControllerInputs()
     end
 
     game:addFrame(emu.framecount(), diff)
-    --print(getGameFrame(), tableToString(game:getFrame(emu.framecount())))
     currentInputs = j
   end
 end
@@ -196,9 +195,9 @@ function printMetrics()
 
   local red = "#a81605"
 
-  gui.drawrect(10,20,85,215,"black", red)
+  gui.drawrect(5,20,85,215,"black", red)
 
-  local x1 = 13
+  local x1 = 8
   local y1 = 23
 
   local das = memory.readbyte(0x0046)
@@ -208,22 +207,31 @@ function printMetrics()
 
   local y2 = y1+20
 
-  gui.text(x1,y2+ 0, "Singles:  "..game.singles, "white", "black")
-  gui.text(x1,y2+10, "Doubles:  " ..game.doubles, "white", "black")
-  gui.text(x1,y2+20, "Triples:  "..game.triples, "white", "black")
-  gui.text(x1,y2+30, "Tetrises: "..game.tetrises, "white", "black")
+  display( 0, "Singles:  ", game.singles)
+  display(10, "Doubles:  ", game.doubles)
+  display(20, "Triples:  ", game.triples)
+  display(30, "Tetrises: ", game.tetrises)
 
-  gui.text(x1,y2+50, "AVERAGES:", "white", "black")
+  gui.text(x1,y2+50,"AVERAGES:", "white", "black")
 
-  gui.text(x1,y2+70, "Cnversion:"..round(game:conversionRatio(), 2), "white", "black")
-  gui.text(x1,y2+80, "Clear:   "..round(game:avgClear(), 2), "white", "black")
-  gui.text(x1,y2+90, "Accmdation:"..round(game:avgAccommodation(), 2), "white", "black")
-  gui.text(x1,y2+100, "Max ht: " ..round(game:avgMaxHeight(), 2), "white", "black")
-  gui.text(x1,y2+110, "Min ht:  "..round(game:avgMinHeight(), 2), "white", "black")
-  gui.text(x1,y2+120, "Surplus: "..round(game:avgSurplus(), 2), "white", "black")
-  gui.text(x1,y2+130, "Drought: "..round(game:avgDrought(), 2), "white", "black")
-  gui.text(x1,y2+140, "Pause:  " ..round(game:avgPause(), 2), "white", "black")
-  gui.text(x1,y2+150, "Readinses:"..round(game:avgReadinessDistance(), 2), "white", "black")
+  display(70,  "Cnversion: " , game:conversionRatio())
+  display(80,  "Clear:    "  , game:avgClear())
+  display(90,  "Accmdation:" , game:avgAccommodation())
+  display(100, "Max height:" , game:avgMaxHeight())
+  display(110, "Min height:" , game:avgMinHeight())
+  display(120, "Surplus: "   , game:avgSurplus())
+  display(130, "Drought: "   , game:avgDrought())
+  display(140, "Pause:  "    , game:avgPause())
+  display(150, "Readiness:"  , game:avgReadinessDistance())
+  display(160, "Presses: "   , game:avgPressesPerTetrimino())
+end
+
+function display(yOffset,title,num)
+  local x1 = 12
+  local y2 = 43
+  local numDisplay = ""
+  if num ~= nil then numDisplay = round(num, 2) end
+  gui.text(x1,y2+yOffset, title .. numDisplay, "white", "black")
 end
 
 function main()
