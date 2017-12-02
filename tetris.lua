@@ -84,15 +84,6 @@ function updateControllerInputs()
   end
 end
 
-function readBoard()
-  local b = {}
-  for r=0,19 do
-     b[r] = {}
-    for c=0,9 do b[r][c] = memory.readbyte(Addresses["Playfield"] + (10*r) + c) end
-  end
-  return Board(b)
-end
-
 --
 function updateGameStateGlobals()
   local gState   = getGameState()
@@ -151,7 +142,7 @@ end
 function handleLock (at, nt)
   local linesThisTurn = linesClearedThisTurn()
   if linesThisTurn > 0 then game:addClear(getGameFrame(), linesThisTurn) end
-  local b = readBoard()
+  local b = readBoard(memory)
   --b:dump()
   local tetrisReadyRow = b:tetrisReadyRow()
   local isReady        = tetrisReadyRow ~= -1
@@ -224,6 +215,9 @@ function printMetrics()
   display(140, "Pause:  "    , game:avgPause())
   display(150, "Readiness:"  , game:avgReadinessDistance())
   display(160, "Presses: "   , game:avgPressesPerTetrimino())
+
+  gui.drawrect(192,y2+60,192+30,y2+72,"black")
+  gui.text(192,y2+62,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
 end
 
 function display(yOffset,title,num)
@@ -239,6 +233,7 @@ function main()
     updateControllerInputs();
     updateTetriminos();
     printMetrics();
+    if playStateGlobal == 3 then writeBoard(memory) end
   end
   updateGameStateGlobals();
 end

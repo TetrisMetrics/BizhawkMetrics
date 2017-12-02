@@ -9,6 +9,37 @@ Board = class(function(a, rawBoard)
   for r=0,19 do a.rows[r]=Row(r,rawBoard[r]) end
 end)
 
+h
+function readBoard(memory)
+  local playfieldAddr = 0x0400
+  local b = {}
+  for r=0,19 do
+    b[r] = {}
+    for c=0,9 do
+      local id = memory.readbyte(playfieldAddr + (10*r) + c)
+      if id ~= EMPTY_SQUARE then
+        local tColor = fif(isOdd(r+c), 124, 125)
+        memory.writebyte(playfieldAddr + (10*r) + c, tColor)
+      end
+      b[r][c] = id
+    end
+  end
+  return Board(b)
+end
+
+function writeBoard(memory)
+  local playfieldAddr = 0x0400
+  for r=0,19 do
+    for c=0,9 do
+      local id = memory.readbyte(playfieldAddr + (10*r) + c)
+      if id ~= EMPTY_SQUARE then
+        local tColor = fif(isOdd(r+c), 124, 125)
+        memory.writebyte(playfieldAddr + (10*r) + c, tColor)
+      end
+    end
+  end
+end
+
 function Board:dump()
   for i = 0, 19 do print(self.rows[i]:dump()) end
   local r = self:tetrisReadyRow()

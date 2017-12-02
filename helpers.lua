@@ -93,3 +93,10 @@ function tableLength(T)
   for _ in pairs(T) do count = count + 1 end
   return count
 end
+
+function fif(condition, if_true, if_false)
+  if condition then return if_true else return if_false end
+end
+
+function isOdd(n)  return n % 2 == 1 end
+function isEven(n) return n % 2 == 0 end
