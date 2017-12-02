@@ -9,7 +9,6 @@ Board = class(function(a, rawBoard)
   for r=0,19 do a.rows[r]=Row(r,rawBoard[r]) end
 end)
 
-h
 function readBoard(memory)
   local playfieldAddr = 0x0400
   local b = {}

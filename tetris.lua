@@ -194,7 +194,8 @@ function printMetrics()
   local das = memory.readbyte(0x0046)
   local dasBackgroundColor
   if das < 10 then dasBackgroundColor = red else dasBackgroundColor = "#207005" end
-  gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
+  --gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
+  gui.text(x1,y1+0,"Clears:", "white", "black")
 
   local y2 = y1+20
 
