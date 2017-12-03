@@ -1,15 +1,10 @@
----
---- Created by Joshua.
---- DateTime: 10/25/2017 7:25 PM
----
-
 require ("Board")
 require ('Class')
 require ("Drought")
 require ('List')
 require ('helpers')
 
--- TODO: Number of clicks per tetrimino and APM
+-- TODO: APM ?
 -- TODO: DAS info...
 TetrisGame = class(function(a,startFrame,startLevel)
   a.startFrame      = startFrame -- the exact NES frame the game started on.
@@ -56,17 +51,17 @@ function TetrisGame:dump()
   --print("Game:")
   --print("tetriminos: "              .. tableToList(self.tetriminos):dump())
   --print("frames: "                  .. tableToList(self.frames):dump())
-  print("clears: "                  .. tableToList(self.clears):dump())
-  print("  avg clear: "             .. round(self:avgClear(), 3))
-  print("  avg accommodation: "     .. round(self:avgAccommodation(), 3))
-  print("  avg max height: "        .. round(self:avgMaxHeight(), 2))
-  print("  avg min height: "        .. round(self:avgMinHeight(), 2))
-  print("  avg drought: "           .. round(self:avgDrought(), 2))
-  print("  avg pause: "             .. round(self:avgPause(), 2))
-  print("  avg surplus: "           .. round(self:avgSurplus(), 2))
-  print("  conversion ratio: "      .. round(self:conversionRatio(), 2))
-  print("  avg ready distance: "    .. round(self:avgReadinessDistance(), 2))
-  print("  avg presses (per tet): " .. round(self:avgPressesPerTetrimino(), 2))
+  --print("clears: "                  .. tableToList(self.clears):dump())
+  print("  avg clear: "             .. self:avgClear())
+  print("  avg accommodation: "     .. self:avgAccommodation())
+  print("  avg max height: "        .. self:avgMaxHeight())
+  print("  avg min height: "        .. self:avgMinHeight())
+  print("  avg drought: "           .. self:avgDrought())
+  print("  avg pause: "             .. self:avgPause())
+  print("  avg surplus: "           .. self:avgSurplus())
+  print("  conversion ratio: "      .. self:conversionRatio())
+  print("  avg ready distance: "    .. self:avgReadinessDistance())
+  print("  avg presses (per tet): " .. self:avgPressesPerTetrimino())
 end
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
@@ -108,8 +103,6 @@ function TetrisGame:addClear (frame, nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
---    game:addTetrimino(getGameFrame(), at)
-
 function TetrisGame:addTetrimino (frame, t, board)
   self.tetriminos[frame] = at
   self.nrDrops = self.nrDrops + 1
@@ -134,11 +127,6 @@ function TetrisGame:addMinHeight (h)
   self.totalMinHeight = self.totalMinHeight + h
 end
 
-function TetrisGame:avgMaxHeight ()
-  if self.nrDrops == 0 then return 0
-  else return (self.totalMaxHeight / self.nrDrops) end
-end
-
 function TetrisGame:addSurplus (s)
   self.lastSurplus  = s
   self.nrTimesReady = self.nrTimesReady + 1
@@ -159,38 +147,35 @@ function TetrisGame:addPause (p)
 end
 
 function TetrisGame:avgClear ()
-  if self.nrClears == 0 then return 0
-  else return (self.nrLines / self.nrClears) end
+  return (self.nrClears == 0) and 0 or (self.nrLines / self.nrClears)
+end
+
+function TetrisGame:avgMaxHeight ()
+  return (self.nrDrops == 0) and 0 or (self.totalMaxHeight / self.nrDrops)
 end
 
 function TetrisGame:avgMinHeight ()
-  if self.nrDrops == 0 then return 0
-  else return (self.totalMinHeight / self.nrDrops) end
+  return (self.nrDrops == 0) and 0 or (self.totalMinHeight / self.nrDrops)
 end
 
 function TetrisGame:avgAccommodation ()
-  if self.nrDrops == 0 then return 0
-  else return (self.accommodations / self.nrDrops) end
+  return (self.nrDrops == 0) and 0 or (self.accommodations / self.nrDrops)
 end
 
 function TetrisGame:avgSurplus ()
-  if self.nrTimesReady == 0 then return 0
-  else return (self.totalSurplus / self.nrTimesReady) end
+  return (self.nrTimesReady == 0) and 0 or (self.totalSurplus / self.nrTimesReady)
 end
 
 function TetrisGame:avgDrought ()
-  if self.nrDroughts == 0 then return 0
-  else return (self.totalDrought / self.nrDroughts) end
+  return (self.nrDroughts == 0) and 0 or (self.totalDrought / self.nrDroughts)
 end
 
 function TetrisGame:avgPause ()
-  if self.nrPauses == 0 then return 0
-  else return (self.totalPause / self.nrPauses) end
+  return (self.nrPauses == 0) and 0 or (self.totalPause / self.nrPauses)
 end
 
 function TetrisGame:avgReadinessDistance ()
-  if self.nrTimesReady == 0 then return 0
-  else return (self.readyDistance / self.nrTimesReady) end
+  return (self.nrTimesReady == 0) and 0 or (self.readyDistance / self.nrTimesReady)
 end
 
 function TetrisGame:avgPressesPerTetrimino ()
@@ -198,8 +183,7 @@ function TetrisGame:avgPressesPerTetrimino ()
 end
 
 function TetrisGame:conversionRatio()
-  if self.nrTimesReady == 0 then return 1
-  else return self.tetrises / self.nrTimesReady end
+  return (self.nrTimesReady == 0) and 0 or (self.tetrises / self.nrTimesReady)
 end
 
 function round(num, numDecimalPlaces)
@@ -207,24 +191,7 @@ function round(num, numDecimalPlaces)
   return math.floor(num * mult + 0.5) / mult
 end
 
-TetriminosById = {
-  [2]  = "T",
-  [7]  = "J",
-  [8]  = "Z",
-  [10] = "0",
-  [11] = "S",
-  [14] = "L",
-  [18] = "I",
-}
-
-TetriminosByName = {
-  ["T"] = 2,
-  ["J"] = 7,
-  ["Z"] = 8,
-  ["0"] = 10,
-  ["S"] = 11,
-  ["L"] = 14,
-  ["I"] = 18,
-}
+TetriminosById = { [2]  = "T", [7]  = "J", [8]  = "Z", [10] = "0", [11] = "S", [14] = "L", [18] = "I" }
+TetriminosByName = { ["T"] = 2, ["J"] = 7, ["Z"] = 8, ["0"] = 10, ["S"] = 11, ["L"] = 14, ["I"] = 18 }
 
 function getTetriminoNameById(id) return TetriminosById[id] end
