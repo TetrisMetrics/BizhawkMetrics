@@ -161,7 +161,7 @@ end
 function handleSurplus(b, linesThisTurn)
   local notReadyLastTurn = not game:isTetrisReady()
   local haveBecomeReadyThisTurn =
-    b.isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
+    b:isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
   if(haveBecomeReadyThisTurn) then game:addSurplus(b:getSurplus()) end
 end
 

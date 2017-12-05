@@ -24,8 +24,8 @@ Board = class(function(a, rawBoard)
   a.maxHeight = 0
   a.minHeight = 20
   for c=0,9 do
-    if hs[c] > a.maxHeight then a.maxHeight = hs[c] end
-    if hs[c] < a.minHeight then a.minHeight = hs[c] end
+    if a.heights[c] > a.maxHeight then a.maxHeight = a.heights[c] end
+    if a.heights[c] < a.minHeight then a.minHeight = a.heights[c] end
   end
 
   -- calculate relativeHeights (differences between neighboring column heights)
