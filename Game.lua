@@ -6,7 +6,7 @@ require ('helpers')
 
 -- TODO: APM ?
 -- TODO: DAS info...
-TetrisGame = class(function(a,startFrame,startLevel)
+Game = class(function(a,startFrame,startLevel)
   a.startFrame      = startFrame -- the exact NES frame the game started on.
   a.startLevel      = startLevel -- the level the game started on.
 
@@ -47,7 +47,7 @@ TetrisGame = class(function(a,startFrame,startLevel)
   a.nrPressesPerTet = 0
 end)
 
-function TetrisGame:dump()
+function Game:dump()
   --print("Game:")
   --print("tetriminos: "              .. tableToList(self.tetriminos):dump())
   --print("frames: "                  .. tableToList(self.frames):dump())
@@ -67,30 +67,30 @@ end
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
-function TetrisGame:addFrame (frame, diffs)
+function Game:addFrame (frame, diffs)
   self.frames[frame - self.startFrame] = diffs
   if diffs ~= nil then
     self.nrPresses = self.nrPresses + tableLength(diffs)
   end
 end
 
-function TetrisGame:getFrame (frame)
+function Game:getFrame (frame)
   return self.frames[frame - self.startFrame]
 end
 
-function TetrisGame:setTetrisReady (r)
+function Game:setTetrisReady (r)
   self.tetrisReady = r
 end
 
-function TetrisGame:isTetrisReady ()
+function Game:isTetrisReady ()
   return self.tetrisReady
 end
 
-function TetrisGame:getNrLines ()
+function Game:getNrLines ()
   return self.nrLines
 end
 
-function TetrisGame:addClear (frame, nrLines)
+function Game:addClear (frame, nrLines)
   self.clears[frame] = nrLines
   self.nrClears = self.nrClears + 1
   self.nrLines  = self.nrLines + nrLines
@@ -103,31 +103,31 @@ function TetrisGame:addClear (frame, nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
-function TetrisGame:addTetrimino (frame, t, board)
+function Game:addTetrimino (frame, t, board)
   self.tetriminos[frame] = at
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
     --print("self.nrPresses", self.nrPresses, "self.nrDrops", self.nrDrops)
     self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
     self:addAccommodation(board:accommodationScore())
-    self:addMaxHeight(board:maxHeight())
-    self:addMinHeight(board:minHeight())
+    self:addMaxHeight(board.maxHeight)
+    self:addMinHeight(board.minHeight)
   end
 end
 
-function TetrisGame:addAccommodation (a)
+function Game:addAccommodation (a)
   self.accommodations = self.accommodations + a
 end
 
-function TetrisGame:addMaxHeight (h)
+function Game:addMaxHeight (h)
   self.totalMaxHeight = self.totalMaxHeight + h
 end
 
-function TetrisGame:addMinHeight (h)
+function Game:addMinHeight (h)
   self.totalMinHeight = self.totalMinHeight + h
 end
 
-function TetrisGame:addSurplus (s)
+function Game:addSurplus (s)
   self.lastSurplus  = s
   self.nrTimesReady = self.nrTimesReady + 1
   self.totalSurplus = self.totalSurplus + s
@@ -136,53 +136,53 @@ function TetrisGame:addSurplus (s)
   self.readyDistance = self.readyDistance + (self.nrDrops - self.lastTetris)
 end
 
-function TetrisGame:addDrought (d)
+function Game:addDrought (d)
   self.totalDrought = self.totalDrought + d
   self.nrDroughts = self.nrDroughts + 1
 end
 
-function TetrisGame:addPause (p)
+function Game:addPause (p)
   self.totalPause = self.totalPause + p
   self.nrPauses = self.nrPauses + 1
 end
 
-function TetrisGame:avgClear ()
+function Game:avgClear ()
   return (self.nrClears == 0) and 0 or (self.nrLines / self.nrClears)
 end
 
-function TetrisGame:avgMaxHeight ()
+function Game:avgMaxHeight ()
   return (self.nrDrops == 0) and 0 or (self.totalMaxHeight / self.nrDrops)
 end
 
-function TetrisGame:avgMinHeight ()
+function Game:avgMinHeight ()
   return (self.nrDrops == 0) and 0 or (self.totalMinHeight / self.nrDrops)
 end
 
-function TetrisGame:avgAccommodation ()
+function Game:avgAccommodation ()
   return (self.nrDrops == 0) and 0 or (self.accommodations / self.nrDrops)
 end
 
-function TetrisGame:avgSurplus ()
+function Game:avgSurplus ()
   return (self.nrTimesReady == 0) and 0 or (self.totalSurplus / self.nrTimesReady)
 end
 
-function TetrisGame:avgDrought ()
+function Game:avgDrought ()
   return (self.nrDroughts == 0) and 0 or (self.totalDrought / self.nrDroughts)
 end
 
-function TetrisGame:avgPause ()
+function Game:avgPause ()
   return (self.nrPauses == 0) and 0 or (self.totalPause / self.nrPauses)
 end
 
-function TetrisGame:avgReadinessDistance ()
+function Game:avgReadinessDistance ()
   return (self.nrTimesReady == 0) and 0 or (self.readyDistance / self.nrTimesReady)
 end
 
-function TetrisGame:avgPressesPerTetrimino ()
+function Game:avgPressesPerTetrimino ()
   return self.nrPressesPerTet
 end
 
-function TetrisGame:conversionRatio()
+function Game:conversionRatio()
   return (self.nrTimesReady == 0) and 0 or (self.tetrises / self.nrTimesReady)
 end
 

@@ -7,89 +7,65 @@ Board = class(function(a, rawBoard)
   a.rawBoard = rawBoard
   a.rows = {}
   for r=0,19 do a.rows[r]=Row(r,rawBoard[r]) end
-end)
 
-function readBoard(memory)
-  local playfieldAddr = 0x0400
-  local b = {}
-  for r=0,19 do
-    b[r] = {}
-    for c=0,9 do
-      b[r][c] = memory.readbyte(playfieldAddr + (10*r) + c)
-    end
-  end
-  return Board(b)
-end
-
-function writeBoard(memory)
-  local playfieldAddr = 0x0400
-  for r=0,19 do
-    for c=0,9 do
-      local id = memory.readbyte(playfieldAddr + (10*r) + c)
-      if id ~= EMPTY_SQUARE then
-        local tColor = fif(isOdd(r+c), 124, 125)
-        memory.writebyte(playfieldAddr + (10*r) + c, tColor)
+  -- calculate column heights
+  a.heights = {}
+  for c=0,9 do
+    a.heights[c] = 0
+    for r=0,19 do
+      if a.rows[r].cols[c] ~= EMPTY_SQUARE then
+        a.heights[c] = 20 - r
+        break;
       end
     end
   end
-end
 
-function Board:dump()
-  for i = 0, 19 do print(self.rows[i]:dump()) end
-  local r = self:tetrisReadyRow()
-  print("Tetris ready row: ", r + 1)
-  if r ~= -1 then print("surplus: ", self:surplus()) end
-end
+  -- calculate max and min heights (across all columns)
+  a.maxHeight = 0
+  a.minHeight = 20
+  for c=0,9 do
+    if hs[c] > a.maxHeight then a.maxHeight = hs[c] end
+    if hs[c] < a.minHeight then a.minHeight = hs[c] end
+  end
+
+  -- calculate relativeHeights (differences between neighboring column heights)
+  a.relativeHeights = {}
+  for i = 0, 8 do a.relativeHeights[i] = a.heights[i + 1] - a.heights[i] end
+
+  -- calculate tetris readiness
+  a.tetrisReadyRow = -1
+
+  for r=19,3,-1 do
+    local col = a.rows[r].well
+    if col ~= nil then
+      local blockHasTetrisReadyWell =
+        a.rows[r-1].well == col and a.rows[r-2].well == col and a.rows[r-3].well == col
+      local wellIsClosedBelow = r == 19 or a.rows[r+1]:isFilledAt(col)
+      local wellIsOpenAbove = a.heights[col] < r
+
+      if blockHasTetrisReadyWell and wellIsClosedBelow and wellIsOpenAbove then
+        -- only here have we found that we are tetris ready :)
+        a.tetrisReadyRow = r
+        break;
+      end
+    end
+  end
+
+end)
+
+function Board:isTetrisReady() return self.tetrisReadyRow ~= -1 end
 
 function Board:getSurplus(tetrisReadyRow)
-  local r = tetrisReadRow
-  if r == nil then r = self:tetrisReadyRow() end
-  if r == -1 then return -1 else return self:blocksAboveRow(r-4) end
+  local r = tetrisReadyRow
+  if r == nil then r = self.tetrisReadyRow end
+  if r == -1  then return -1 else return self:blocksAboveRow(r-4) end
   return r
 end
 
 function Board:blocksAboveRow(r)
   local nr = 0
-  for i=r,0,-1 do
-    nr = nr + (self.rows[i]:nrColsFilled())
-  end
+  for i=r,0,-1 do nr = nr + (self.rows[i].nrColsFilled) end
   return nr
-end
-
-function Board:tetrisReadyRow ()
-  for r=19,3,-1 do
-    local col = self.rows[r]:well()
-    if col ~= nil then
-      local blockHasTetrisReadyWell =
-      self.rows[r-1]:well() == col and self.rows[r-2]:well() == col and self.rows[r-3]:well() == col
-      local wellIsClosedBelow = r == 19 or self.rows[r+1]:isFilledAt(col)
-      local wellIsOpenAbove = self:isColumnEmptyUntil(col, r - 4)
-
-      if blockHasTetrisReadyWell and wellIsClosedBelow and wellIsOpenAbove then
-        -- only here have we found that we are tetris ready :)
-        return r
-      end
-    end
-  end
-  return -1
-end
-
-function Board:maxHeight ()
-  local max = 0;
-  local hs = self:heights();
-  for c=0,9 do
-    if hs[c] > max then max = hs[c] end
-  end
-  return max;
-end
-
-function Board:minHeight ()
-  local min = 20;
-  local hs = self:heights();
-  for c=0,9 do
-    if hs[c] < min then min = hs[c] end
-  end
-  return min;
 end
 
 --[[
@@ -105,7 +81,7 @@ end
 function Board:accommodationScore ()
   -- local t = {[0] = false, [1] = false, [-1] = false, [{0,0}] = false}
   local a = {["I"] = true}
-  local rs = self:relativeHeights()
+  local rs = self.relativeHeights
   for i = 0, 8 do
     -- width 2 tests
     if rs[i] ==  0 then a["0"] = true; a["J"] = true; a["L"] = true end
@@ -121,81 +97,77 @@ function Board:accommodationScore ()
   return tableLength(a)
 end
 
-function Board:relativeHeights()
-  local hs = self:heights()
-  local rs = {}
-  for i = 0, 8 do
-    rs[i] = hs[i + 1] - hs[i]
+function Board:dump()
+  for i = 0, 19 do print(self.rows[i]:dump()) end
+  local r = self.tetrisReadyRow
+  if r ~= -1 then
+    print("Tetris ready row: ", r + 1)
+    print("surplus: ", self:getSurplus())
+  else
+    print("board not tetris ready")
   end
-  return rs
 end
 
--- TODO: would be nice if we could memoize this.
-function Board:heights ()
-  local hs = {}
-  for c=0,9 do
-    hs[c] = self:heightAtCol(c)
-  end
-  return hs
-end
-
--- TODO: would be nice if we could memoize this.
-function Board:heightAtCol(col)
-  for r=0,19 do
-    if self.rows[r].row[col] ~= EMPTY_SQUARE then return 20 - r end
-  end
-  return 0
-end
-
---- TODO: do we need to adjust to depth - 1?
-function Board:isColumnEmptyUntil (col, depth)
-  for i=0,depth do
-    if self.rows[i].row[col] ~= EMPTY_SQUARE then return false end
-  end
-  return true
-end
-
-Row = class(function(a, index, raw)
+Row = class(function(a, index, cols)
   a.index = index
-  a.row = raw
-end)
+  a.cols = cols
 
-function Row:well ()
-  local fullCount = 0
-  local emptyIndex
-  for k,v in pairs(self.row) do
-    if v ~= EMPTY_SQUARE then fullCount = fullCount + 1
-    else emptyIndex = k end
+  -- calculate # of columns filed
+  a.nrColsFilled = 0
+  a.emptyIndex = nil
+  for i = 0, 9 do
+    if cols[i] ~= EMPTY_SQUARE then a.nrColsFilled = a.nrColsFilled + 1
+    else a.emptyIndex = i end
   end
-  if fullCount == 9 then return emptyIndex else return nil end
-end
+
+  a.well = a.nrColsFilled == 9 and a.emptyIndex or nil
+end)
 
 function Row:isTetrisReady () return self.well ~= nil end
 function Row:isTetrisReadyAt (col) return self.well == col end
-function Row:isEmptyAt (col)  return self.row[col] == EMPTY_SQUARE end
-function Row:isFilledAt (col) return self.row[col] ~= EMPTY_SQUARE end
-
-function Row:nrColsFilled ()
-  local nr = 0
-  for i = 0, 9 do
-    if self.row[i] ~= EMPTY_SQUARE then nr = nr + 1 end
-  end
-  return nr
-end
+function Row:isEmptyAt  (col) return self.cols[col] == EMPTY_SQUARE end
+function Row:isFilledAt (col) return self.cols[col] ~= EMPTY_SQUARE end
+function Row:nrColsFilled () return self.nrColsFilled end
 
 function Row:toString()
   local s = ""
-  for i = 0, 9 do if self.row[i] == EMPTY_SQUARE then s = s .. "_" else s = s .. "X" end end
+  for i = 0, 9 do if self.cols[i] == EMPTY_SQUARE then s = s .. "_" else s = s .. "X" end end
   return s
 end
 
 function Row:dump()
   function printInt(i) if(i<10) then return " " .. i else return i end end
   function printWell()
-    local w = self:well()
+    local w = self.well
     if w == nil then return "NA" else return printInt(w) end
   end
-
   local metaString = "{" .. printInt(self.index + 1) .. ", " .. printWell() .. "}"
   return self:toString() .. " " .. metaString
+end
+
+
+function readBoard(memory)
+  local playfieldAddr = 0x0400
+  local b = {}
+  for r=0,19 do
+    b[r] = {}
+    for c=0,9 do
+      b[r][c] = memory.readbyte(playfieldAddr + (10*r) + c)
+    end
+  end
+  return Board(b)
+end
+
+-- writes the checkerboard
+function writeBoard(memory)
+  local playfieldAddr = 0x0400
+  for r=0,19 do
+    for c=0,9 do
+      local id = memory.readbyte(playfieldAddr + (10*r) + c)
+      if id ~= EMPTY_SQUARE then
+        local tColor = isOdd(r+c) and 124 or 125
+        memory.writebyte(playfieldAddr + (10*r) + c, tColor)
+      end
+    end
+  end
 end

@@ -3,7 +3,7 @@
 require("Board")
 require("Drought")
 require("helpers")
-require("TetrisGame")
+require("Game")
 
 local displayMetrics = input.popup("Display Metrics?")
 
@@ -108,7 +108,7 @@ function updateGameStateGlobals()
 
   if(starting) then
     print("\n" .. "new game is starting on frame " .. emu.framecount() .. "\n")
-    game = TetrisGame(emu.framecount(), getLevel())
+    game = Game(emu.framecount(), getLevel())
   end
 
   if(ending) then
@@ -127,30 +127,29 @@ end
 function updateTetriminos()
   local at = getTetrimino()
   local nt = getNextTetrimino()
+  local frame = getGameFrame()
   -- when a game first starts, the tetriminos are always set to 19 and 14.
   -- so we need to detect when this changes, and add the first tetriminos to the game.
   if (currentTetriminoGlobal == 19 and at ~= 19) then
-    game:addTetrimino(getGameFrame(), at)
-    game:addTetrimino(getGameFrame(), nt)
-    --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(at))
-    --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
+    game:addTetrimino(frame, at)
+    game:addTetrimino(frame, nt)
+    --print(frame, "added tetrimino:", getTetriminoNameById(at))
+    --print(frame, "added tetrimino:", getTetriminoNameById(nt))
   end
 
-  if hasTetriminoLockedThisFrame() then handleLock(at, nt) end
+  if hasTetriminoLockedThisFrame() then
+    handleLock(at, nt, readBoard(memory), frame, linesClearedThisTurn())
+  end
 end
 
-function handleLock (at, nt)
-  local linesThisTurn = linesClearedThisTurn()
-  if linesThisTurn > 0 then game:addClear(getGameFrame(), linesThisTurn) end
-  local b = readBoard(memory)
-  --b:dump()
-  local tetrisReadyRow = b:tetrisReadyRow()
-  local isReady        = tetrisReadyRow ~= -1
-  game:addTetrimino(getGameFrame(), nt, b)
+-- this is all messy AF out the order is so arbitrary...
+function handleLock (at, nt, b, frame, linesThisTurn)
+  if linesThisTurn > 0 then game:addClear(frame, linesThisTurn) end
+  game:addTetrimino(frame, nt, b)
   --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
-  handleDrought(linesThisTurn, isReady, at)
-  handleSurplus(b, linesThisTurn, tetrisReadyRow, isReady)
-  game:setTetrisReady(isReady)
+  handleDrought(linesThisTurn, b:isTetrisReady(), at)
+  handleSurplus(b, linesThisTurn)
+  game:setTetrisReady(b:isTetrisReady())
 end
 
 function handleDrought (lines, ready, at)
@@ -158,13 +157,12 @@ function handleDrought (lines, ready, at)
   displayDroughtOnNES(drought)
 end
 
-function handleSurplus(b, linesThisTurn, tetrisReadyRow, ready)
+-- if we just became tetris ready, record the surplus
+function handleSurplus(b, linesThisTurn)
+  local notReadyLastTurn = not game:isTetrisReady()
   local haveBecomeReadyThisTurn =
-    (ready and not game:isTetrisReady()) or (ready and linesThisTurn == 4)
-  -- if we just became tetris ready, record the surplus
-  if(haveBecomeReadyThisTurn) then
-    game:addSurplus(b:getSurplus(tetrisReadyRow))
-  end
+    b.isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
+  if(haveBecomeReadyThisTurn) then game:addSurplus(b:getSurplus()) end
 end
 
 function displayDroughtOnNES(drought)
@@ -199,29 +197,29 @@ function printMetrics()
 
   local y2 = y1+20
 
-  display( 0, "Singles:  ", game.singles)
-  display(10, "Doubles:  ", game.doubles)
-  display(20, "Triples:  ", game.triples)
-  display(30, "Tetrises: ", game.tetrises)
+  printMetric( 0, "Singles:  ", game.singles)
+  printMetric(10, "Doubles:  ", game.doubles)
+  printMetric(20, "Triples:  ", game.triples)
+  printMetric(30, "Tetrises: ", game.tetrises)
 
   gui.text(x1,y2+50,"AVERAGES:", "white", "black")
 
-  display(70,  "Cnversion: " , game:conversionRatio())
-  display(80,  "Clear:    "  , game:avgClear())
-  display(90,  "Accmdation:" , game:avgAccommodation())
-  display(100, "Max height:" , game:avgMaxHeight())
-  display(110, "Min height:" , game:avgMinHeight())
-  display(120, "Surplus: "   , game:avgSurplus())
-  display(130, "Drought: "   , game:avgDrought())
-  display(140, "Pause:  "    , game:avgPause())
-  display(150, "Readiness:"  , game:avgReadinessDistance())
-  display(160, "Presses: "   , game:avgPressesPerTetrimino())
+  printMetric(70,  "Cnversion: " , game:conversionRatio())
+  printMetric(80,  "Clear:    "  , game:avgClear())
+  printMetric(90,  "Accmdation:" , game:avgAccommodation())
+  printMetric(100, "Max height:" , game:avgMaxHeight())
+  printMetric(110, "Min height:" , game:avgMinHeight())
+  printMetric(120, "Surplus: "   , game:avgSurplus())
+  printMetric(130, "Drought: "   , game:avgDrought())
+  printMetric(140, "Pause:  "    , game:avgPause())
+  printMetric(150, "Readiness:"  , game:avgReadinessDistance())
+  printMetric(160, "Presses: "   , game:avgPressesPerTetrimino())
 
   gui.drawrect(192,y2+60,192+30,y2+72,"black")
   gui.text(192,y2+62,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
 end
 
-function display(yOffset,title,num)
+function printMetric(yOffset,title,num)
   local x1 = 12
   local y2 = 43
   local numDisplay = ""
@@ -248,6 +246,5 @@ currentTetriminoGlobal  = getTetrimino()
 -- the main loop. runs main function, advances frame, then loops.
 while true do
   main()
-  --visualizeSprites()
   emu.frameadvance()
 end
