@@ -61,10 +61,6 @@ function hasTetriminoLockedThisFrame()
   return playStateGlobal == 8 and getPlayState() == 1
 end
 
-function getGameFrame()
-  return emu.framecount() - game.startFrame;
-end
-
 PRESSED   = { [1] = false,[2] = true }
 UNPRESSED = { [1] = true, [2] = false }
 
@@ -127,18 +123,16 @@ end
 function updateTetriminos()
   local at = getTetrimino()
   local nt = getNextTetrimino()
-  local frame = getGameFrame()
+  local globalFrame = emu.framecount()
   -- when a game first starts, the tetriminos are always set to 19 and 14.
   -- so we need to detect when this changes, and add the first tetriminos to the game.
   if (currentTetriminoGlobal == 19 and at ~= 19) then
-    game:addTetrimino(frame, at)
-    game:addTetrimino(frame, nt)
-    --print(frame, "added tetrimino:", getTetriminoNameById(at))
-    --print(frame, "added tetrimino:", getTetriminoNameById(nt))
+    game:addTetrimino(globalFrame, at)
+    game:addTetrimino(globalFrame, nt)
   end
 
   if hasTetriminoLockedThisFrame() then
-    local drought = game:lock(at, nt, readBoard(memory), frame, linesClearedThisTurn())
+    local drought = game:lock(at, nt, readBoard(memory), globalFrame, linesClearedThisTurn())
     displayDroughtOnNES(drought)
   end
 end

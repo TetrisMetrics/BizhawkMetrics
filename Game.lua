@@ -67,7 +67,6 @@ end
 -- this is all messy AF out the order is so arbitrary...
 function Game:lock (at, nt, b, frame, linesThisTurn)
   game:addTetrimino(frame, nt, b)
-  --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
   if linesThisTurn > 0 then self:addClear(frame, linesThisTurn) end
   local drought = self.drought:endTurn(linesThisTurn, b:isTetrisReady(), at, self)
   self:handleSurplus(b, linesThisTurn)
@@ -85,11 +84,9 @@ end
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
-function Game:addFrame (frame, diffs)
-  self.frames[frame - self.startFrame] = diffs
-  if diffs ~= nil then
-    self.nrPresses = self.nrPresses + tableLength(diffs)
-  end
+function Game:addFrame (globalFrame, diffs)
+  self.frames[globalFrame - self.startFrame] = diffs
+  if diffs ~= nil then self.nrPresses = self.nrPresses + tableLength(diffs) end
 end
 
 function Game:getFrame (frame) return self.frames[frame - self.startFrame]  end
@@ -110,8 +107,9 @@ function Game:addClear (frame, nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
-function Game:addTetrimino (frame, at, board)
-  self.tetriminos[frame] = at
+function Game:addTetrimino (globalFrame, at, board)
+  --print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
+  self.tetriminos[globalFrame - self.startFrame] = at
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
     self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
