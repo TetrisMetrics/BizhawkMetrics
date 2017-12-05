@@ -16,21 +16,20 @@ require 'helpers'
 -- its either getting wiped out, paused
 -- or incremented, or ignored because its paused.
 Drought = class(function(a, tet)
-  a.tetrisReady = false
-  a.tetrimino   = tet
-  a.drought     = 0
-  a.droughts    = List()
-  a.paused      = false -- true if we closed our own well, until it become open again
-  a.pauseTime   = 0
-  a.pauseTimes  = List()
+  a.tetrisReady  = false
+  a.tetrimino    = tet
+  a.drought      = 0
+  a.paused       = false -- true if we closed our own well, until it become open again
+  a.pauseTime    = 0
 end)
 
-function Drought:endTurn(nrLinesThisTurn, tetrisReadyAfterTurn, nextTet)
+function Drought:endTurn(nrLinesThisTurn, tetrisReadyAfterTurn, nextTet, game)
   if nrLinesThisTurn == 4 then
     -- we got a tetris. record drought and reset it
-    self.droughts:pushright(self.drought)
+    game:addDrought(self.drought)
     self.drought = 0
     self.paused = false
+  -- TODO: actually, we should record the number of times you failed to tetris when you could...
   -- else, if we have a line, toss out drought
   elseif self.tetrimino == 18 and not self.paused then
     self.drought = 0
@@ -38,7 +37,7 @@ function Drought:endTurn(nrLinesThisTurn, tetrisReadyAfterTurn, nextTet)
     -- we were tetris ready, but now we are not. draught must be paused.
     self.paused = true
   elseif self.paused and tetrisReadyAfterTurn then
-    self.pauseTimes:pushright(self.pauseTime)
+    game:addPause(self.pauseTime)
     self.paused = false
     self.pauseTime = 0
   end
