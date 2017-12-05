@@ -6,8 +6,6 @@ require("helpers")
 require("Game")
 require("MetricsDisplay")
 
-local displayMetrics = input.popup("Display Metrics?")
-
 ButtonNames = {"P1 A", "P1 B", "P1 Up", "P1 Down", "P1 Left", "P1 Right"}
 
 Addresses = {
@@ -152,13 +150,21 @@ function displayDroughtOnNES(drought)
 end
 
 function main()
-  if isGameRunning() and game ~= nil then
+  if isGameRunning() and game == nil then
+    game = Game(emu.framecount(), getLevel())
+  end
+
+  if isGameRunning() then
     updateControllerInputs();
     updateTetriminos();
     printMetrics(gui, memory, game);
-    if playStateGlobal == 3 then writeBoard(memory) end
+    --displayCheckerboard();
   end
   updateGameStateGlobals();
+end
+
+function displayCheckerboard ()
+  if playStateGlobal == 3 then writeBoard(memory) end
 end
 
 game                    = nil

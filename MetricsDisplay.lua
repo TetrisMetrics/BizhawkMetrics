@@ -1,4 +1,6 @@
 
+local displayMetrics = "yes" -- input.popup("Display Metrics?")
+
 function printMetrics(gui, memory, game)
 
   if displayMetrics == "no" then return; end
@@ -18,7 +20,7 @@ function printMetrics(gui, memory, game)
 
   local y2 = y1+20
 
-  printMetric(gui, 0, "Singles:  ", game.singles)
+  printMetric(gui,  0, "Singles:  ", game.singles)
   printMetric(gui, 10, "Doubles:  ", game.doubles)
   printMetric(gui, 20, "Triples:  ", game.triples)
   printMetric(gui, 30, "Tetrises: ", game.tetrises)
