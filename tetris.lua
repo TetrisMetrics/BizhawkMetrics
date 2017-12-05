@@ -4,6 +4,7 @@ require("Board")
 require("Drought")
 require("helpers")
 require("Game")
+require("MetricsDisplay")
 
 local displayMetrics = input.popup("Display Metrics?")
 
@@ -150,60 +151,11 @@ function displayDroughtOnNES(drought)
   memory.writebyte(0x03ee, pauseLength);
 end
 
-function printMetrics()
-
-  if displayMetrics == "no" then return; end
-
-  local red = "#a81605"
-
-  gui.drawrect(5,20,85,215,"black", red)
-
-  local x1 = 8
-  local y1 = 23
-
-  local das = memory.readbyte(0x0046)
-  local dasBackgroundColor
-  if das < 10 then dasBackgroundColor = red else dasBackgroundColor = "#207005" end
-  --gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
-  gui.text(x1,y1+0,"Clears:", "white", "black")
-
-  local y2 = y1+20
-
-  printMetric( 0, "Singles:  ", game.singles)
-  printMetric(10, "Doubles:  ", game.doubles)
-  printMetric(20, "Triples:  ", game.triples)
-  printMetric(30, "Tetrises: ", game.tetrises)
-
-  gui.text(x1,y2+50,"AVERAGES:", "white", "black")
-
-  printMetric(70,  "Cnversion: " , game:conversionRatio())
-  printMetric(80,  "Clear:    "  , game:avgClear())
-  printMetric(90,  "Accmdation:" , game:avgAccommodation())
-  printMetric(100, "Max height:" , game:avgMaxHeight())
-  printMetric(110, "Min height:" , game:avgMinHeight())
-  printMetric(120, "Surplus: "   , game:avgSurplus())
-  printMetric(130, "Drought: "   , game:avgDrought())
-  printMetric(140, "Pause:  "    , game:avgPause())
-  printMetric(150, "Readiness:"  , game:avgReadinessDistance())
-  printMetric(160, "Presses: "   , game:avgPressesPerTetrimino())
-
-  gui.drawrect(192,y2+60,192+30,y2+72,"black")
-  gui.text(192,y2+62,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
-end
-
-function printMetric(yOffset,title,num)
-  local x1 = 12
-  local y2 = 43
-  local numDisplay = ""
-  if num ~= nil then numDisplay = round(num, 2) end
-  gui.text(x1,y2+yOffset, title .. numDisplay, "white", "black")
-end
-
 function main()
   if isGameRunning() and game ~= nil then
     updateControllerInputs();
     updateTetriminos();
-    printMetrics();
+    printMetrics(gui, memory, game);
     if playStateGlobal == 3 then writeBoard(memory) end
   end
   updateGameStateGlobals();
