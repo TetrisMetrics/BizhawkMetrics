@@ -138,31 +138,9 @@ function updateTetriminos()
   end
 
   if hasTetriminoLockedThisFrame() then
-    handleLock(at, nt, readBoard(memory), frame, linesClearedThisTurn())
+    local drought = game:lock(at, nt, readBoard(memory), frame, linesClearedThisTurn())
+    displayDroughtOnNES(drought)
   end
-end
-
--- this is all messy AF out the order is so arbitrary...
-function handleLock (at, nt, b, frame, linesThisTurn)
-  if linesThisTurn > 0 then game:addClear(frame, linesThisTurn) end
-  game:addTetrimino(frame, nt, b)
-  --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
-  handleDrought(linesThisTurn, b:isTetrisReady(), at)
-  handleSurplus(b, linesThisTurn)
-  game:setTetrisReady(b:isTetrisReady())
-end
-
-function handleDrought (lines, ready, at)
-  local drought = game.drought:endTurn(lines, ready, at, game)
-  displayDroughtOnNES(drought)
-end
-
--- if we just became tetris ready, record the surplus
-function handleSurplus(b, linesThisTurn)
-  local notReadyLastTurn = not game:isTetrisReady()
-  local haveBecomeReadyThisTurn =
-    b:isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
-  if(haveBecomeReadyThisTurn) then game:addSurplus(b:getSurplus()) end
 end
 
 function displayDroughtOnNES(drought)

@@ -64,6 +64,24 @@ function Game:dump()
   print("  avg presses (per tet): " .. self:avgPressesPerTetrimino())
 end
 
+-- this is all messy AF out the order is so arbitrary...
+function Game:lock (at, nt, b, frame, linesThisTurn)
+  game:addTetrimino(frame, nt, b)
+  --print(getGameFrame(), "added tetrimino:", getTetriminoNameById(nt))
+  if linesThisTurn > 0 then self:addClear(frame, linesThisTurn) end
+  local drought = self.drought:endTurn(linesThisTurn, b:isTetrisReady(), at, self)
+  self:handleSurplus(b, linesThisTurn)
+  self:setTetrisReady(b:isTetrisReady())
+  return drought
+end
+
+-- if we just became tetris ready, record the surplus
+function Game:handleSurplus(b, linesThisTurn)
+  local notReadyLastTurn = not self:isTetrisReady()
+  local haveBecomeReadyThisTurn = b:isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
+  if(haveBecomeReadyThisTurn) then self:addSurplus(b:getSurplus()) end
+end
+
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
@@ -74,21 +92,10 @@ function Game:addFrame (frame, diffs)
   end
 end
 
-function Game:getFrame (frame)
-  return self.frames[frame - self.startFrame]
-end
-
-function Game:setTetrisReady (r)
-  self.tetrisReady = r
-end
-
-function Game:isTetrisReady ()
-  return self.tetrisReady
-end
-
-function Game:getNrLines ()
-  return self.nrLines
-end
+function Game:getFrame (frame) return self.frames[frame - self.startFrame]  end
+function Game:setTetrisReady (r) self.tetrisReady = r end
+function Game:isTetrisReady () return self.tetrisReady end
+function Game:getNrLines () return self.nrLines end
 
 function Game:addClear (frame, nrLines)
   self.clears[frame] = nrLines
@@ -103,11 +110,10 @@ function Game:addClear (frame, nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
-function Game:addTetrimino (frame, t, board)
+function Game:addTetrimino (frame, at, board)
   self.tetriminos[frame] = at
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
-    --print("self.nrPresses", self.nrPresses, "self.nrDrops", self.nrDrops)
     self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
     self:addAccommodation(board:accommodationScore())
     self:addMaxHeight(board.maxHeight)
@@ -115,17 +121,9 @@ function Game:addTetrimino (frame, t, board)
   end
 end
 
-function Game:addAccommodation (a)
-  self.accommodations = self.accommodations + a
-end
-
-function Game:addMaxHeight (h)
-  self.totalMaxHeight = self.totalMaxHeight + h
-end
-
-function Game:addMinHeight (h)
-  self.totalMinHeight = self.totalMinHeight + h
-end
+function Game:addAccommodation (a) self.accommodations = self.accommodations + a  end
+function Game:addMaxHeight     (h) self.totalMaxHeight = self.totalMaxHeight + h  end
+function Game:addMinHeight     (h) self.totalMinHeight = self.totalMinHeight + h  end
 
 function Game:addSurplus (s)
   self.lastSurplus  = s
@@ -178,9 +176,7 @@ function Game:avgReadinessDistance ()
   return (self.nrTimesReady == 0) and 0 or (self.readyDistance / self.nrTimesReady)
 end
 
-function Game:avgPressesPerTetrimino ()
-  return self.nrPressesPerTet
-end
+function Game:avgPressesPerTetrimino () return self.nrPressesPerTet end
 
 function Game:conversionRatio()
   return (self.nrTimesReady == 0) and 0 or (self.tetrises / self.nrTimesReady)
