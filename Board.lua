@@ -41,7 +41,7 @@ Board = class(function(a, rawBoard)
       local blockHasTetrisReadyWell =
         a.rows[r-1].well == col and a.rows[r-2].well == col and a.rows[r-3].well == col
       local wellIsClosedBelow = r == 19 or a.rows[r+1]:isFilledAt(col)
-      local wellIsOpenAbove = a.heights[col] < r
+      local wellIsOpenAbove = a.heights[col] < 19 - r + 4
 
       if blockHasTetrisReadyWell and wellIsClosedBelow and wellIsOpenAbove then
         -- only here have we found that we are tetris ready :)
