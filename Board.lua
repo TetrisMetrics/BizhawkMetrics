@@ -39,7 +39,7 @@ Board = class(function(a, rawBoard)
 
   -- calculate bumpiness/jaggeness from relativeHeights
   a.totalBumpiness = 0
-  for i = 0, 8 do a.bumpiness = a.bumpiness + math.abs(a.relativeHeights[i]) end
+  for i = 0, 8 do a.totalBumpiness = a.totalBumpiness + math.abs(a.relativeHeights[i]) end
   a.bumpiness = a.totalBumpiness / 9
 
   -- calculate tetris readiness

@@ -43,6 +43,11 @@ Game = class(function(a,startFrame,startLevel)
   a.totalDrought    = 0 -- total number of blocks dropped until a line comes, WHEN we become tetris ready.
   a.nrDroughts      = 0 -- TODO: this seems like it should be the same as nrTimesReady. check.
 
+  a.slope           = 0
+  a.bumpiness       = 0
+  a.totalSlope      = 0
+  a.totalBumpiness  = 0
+
   a.nrPresses       = -2 -- Start gets pressed and unpressed to start the game, and we ignore those.
   a.nrPressesPerTet = 0
 end)
@@ -62,6 +67,8 @@ function Game:dump()
   print("  conversion ratio: "      .. self:conversionRatio())
   print("  avg ready distance: "    .. self:avgReadinessDistance())
   print("  avg presses (per tet): " .. self:avgPressesPerTetrimino())
+  print("  avg slope: "             .. self:avgSlope())
+  print("  avg bumpiness: "         .. self:avgBumpiness())
 end
 
 -- this is all messy AF out the order is so arbitrary...
@@ -113,15 +120,13 @@ function Game:addTetrimino (globalFrame, at, board)
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
     self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
-    self:addAccommodation(board:accommodationScore())
-    self:addMaxHeight(board.maxHeight)
-    self:addMinHeight(board.minHeight)
+    self.accommodations = self.accommodations + board:accommodationScore()
+    self.totalMaxHeight = self.totalMaxHeight + board.maxHeight
+    self.totalMinHeight = self.totalMinHeight + board.minHeight
+    self:addSlope(board.slope)
+    self:addBumpiness(board.bumpiness)
   end
 end
-
-function Game:addAccommodation (a) self.accommodations = self.accommodations + a  end
-function Game:addMaxHeight     (h) self.totalMaxHeight = self.totalMaxHeight + h  end
-function Game:addMinHeight     (h) self.totalMinHeight = self.totalMinHeight + h  end
 
 function Game:addSurplus (s)
   self.lastSurplus  = s
@@ -130,6 +135,16 @@ function Game:addSurplus (s)
   -- TODO: move this someplace better,
   -- or have a function, "become ready" that calls addSurplus and this
   self.readyDistance = self.readyDistance + (self.nrDrops - self.lastTetris)
+end
+
+function Game:addSlope (s)
+  self.slope = s
+  self.totalSlope = self.totalSlope + s
+end
+
+function Game:addBumpiness (b)
+  self.bumpiness = b
+  self.totalBumpiness = self.totalBumpiness + b
 end
 
 function Game:addDrought (d)
@@ -172,6 +187,14 @@ end
 
 function Game:avgReadinessDistance ()
   return (self.nrTimesReady == 0) and 0 or (self.readyDistance / self.nrTimesReady)
+end
+
+function Game:avgSlope ()
+  return (self.nrDrops == 0) and 0 or (self.totalSlope / self.nrDrops)
+end
+
+function Game:avgBumpiness ()
+  return (self.nrDrops == 0) and 0 or (self.totalBumpiness / self.nrDrops)
 end
 
 function Game:avgPressesPerTetrimino () return self.nrPressesPerTet end
