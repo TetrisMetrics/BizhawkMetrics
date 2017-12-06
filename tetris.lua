@@ -77,6 +77,8 @@ function updateControllerInputs()
     game:addFrame(emu.framecount(), diff)
     currentInputs = j
   end
+
+  drawJoypad(gui, j)
 end
 
 --
