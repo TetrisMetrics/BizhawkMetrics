@@ -150,11 +150,8 @@ function displayDroughtOnNES(drought)
 end
 
 function main()
-  if isGameRunning() and game == nil then
-    game = Game(emu.framecount(), getLevel())
-  end
-
   if isGameRunning() then
+    if game == nil then game = Game(emu.framecount(), getLevel()) end
     updateControllerInputs();
     updateTetriminos();
     printMetrics(gui, memory, game);

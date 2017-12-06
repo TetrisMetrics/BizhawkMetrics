@@ -32,6 +32,16 @@ Board = class(function(a, rawBoard)
   a.relativeHeights = {}
   for i = 0, 8 do a.relativeHeights[i] = a.heights[i + 1] - a.heights[i] end
 
+  -- calculate slope from relativeHeights
+  a.totalSlope = 0
+  for i = 0, 8 do a.totalSlope = a.totalSlope + a.relativeHeights[i] end
+  a.slope = a.totalSlope / 9
+
+  -- calculate bumpiness/jaggeness from relativeHeights
+  a.totalBumpiness = 0
+  for i = 0, 8 do a.bumpiness = a.bumpiness + math.abs(a.relativeHeights[i]) end
+  a.bumpiness = a.totalBumpiness / 9
+
   -- calculate tetris readiness
   a.tetrisReadyRow = -1
 
@@ -50,7 +60,6 @@ Board = class(function(a, rawBoard)
       end
     end
   end
-
 end)
 
 function Board:isTetrisReady() return self.tetrisReadyRow ~= -1 end
