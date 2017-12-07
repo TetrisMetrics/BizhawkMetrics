@@ -88,12 +88,22 @@ function Game:handleSurplus(b, linesThisTurn)
   if(haveBecomeReadyThisTurn) then self:addSurplus(b:getSurplus()) end
 end
 
+PRESSED   = { [1] = false,[2] = true }
+UNPRESSED = { [1] = true, [2] = false }
+
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
-function Game:addFrame (globalFrame, diffs)
-  self.frames[globalFrame - self.startFrame] = diffs
-  if diffs ~= nil then self.nrPresses = self.nrPresses + tableLength(diffs) end
+function Game:addFrame (globalFrame, j)
+  local diff = getTableDiffs(currentInputs, j)
+  if tableLength(diff) > 0 then
+    -- change the ugly diffs to just true (for pressed) and false (for unpressed)
+    for k,v in pairs(diff) do
+      if (deepEquals(v,PRESSED))   then diff[k] = 1 else diff[k] = 1 end
+    end
+    self.frames[globalFrame - self.startFrame] = diffs
+    if diffs ~= nil then self.nrPresses = self.nrPresses + tableLength(diffs) end
+  end
 end
 
 function Game:getFrame (frame) return self.frames[frame - self.startFrame]  end
