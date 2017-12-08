@@ -3,7 +3,9 @@
 --- DateTime: 11/4/17 10:07 AM
 ---
 
+require("helpers")
 require('Board')
+require("GameReplay")
 
 function randomBoard()
   function testRow()
@@ -40,10 +42,4 @@ math.randomseed(os.time())
 local b = randomBoard()
 b:dump()
 
--- write a json file
-local json  = require "json"
-local filename = "board-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
-local f = io.open(filename, "w")
-f:write(json.encode(b))
-f:flush()
-f:close()
+print(tableToString(gameReplayFromJsonFile("replays/tetris-game-12-08-2017_10-45.json")["tetriminos"]))

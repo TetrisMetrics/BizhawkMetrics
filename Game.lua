@@ -10,6 +10,11 @@ Game = class(function(a,startFrame,startLevel)
   a.startFrame      = startFrame -- the exact NES frame the game started on.
   a.startLevel      = startLevel -- the level the game started on.
 
+  a.firstTetrimino  = nil
+  a.secondTetrimino = nil
+
+  a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+
   a.drought         = Drought() -- the drought object helps calculate droughts
 
   a.frames          = {} -- list of everything that happened every frame. indexed by frame nr.
@@ -94,15 +99,16 @@ UNPRESSED = { [1] = true, [2] = false }
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
-function Game:addFrame (globalFrame, j)
-  local diff = getTableDiffs(currentInputs, j)
-  if tableLength(diff) > 0 then
+function Game:addFrame (globalFrame, previousInputs, newInputs)
+  local diff = getTableDiffs(previousInputs, newInputs)
+  local nrPresses = tableLength(diff)
+  if nrPresses > 0 then
     -- change the ugly diffs to just true (for pressed) and false (for unpressed)
     for k,v in pairs(diff) do
-      if (deepEquals(v,PRESSED))   then diff[k] = 1 else diff[k] = 1 end
+      if (deepEquals(v,PRESSED)) then diff[k] = 1 else diff[k] = 1 end
     end
-    self.frames[globalFrame - self.startFrame] = diffs
-    if diffs ~= nil then self.nrPresses = self.nrPresses + tableLength(diffs) end
+    self.frames[tostring(globalFrame - self.startFrame)] = diff
+    if diff ~= nil then self.nrPresses = self.nrPresses + nrPresses end
   end
 end
 
@@ -112,7 +118,7 @@ function Game:isTetrisReady () return self.tetrisReady end
 function Game:getNrLines () return self.nrLines end
 
 function Game:addClear (frame, nrLines)
-  self.clears[frame] = nrLines
+  self.clears[frame - self.startFrame] = nrLines
   self.nrClears = self.nrClears + 1
   self.nrLines  = self.nrLines + nrLines
   if nrLines == 4 then
@@ -124,9 +130,16 @@ function Game:addClear (frame, nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
+function Game:setInitialTetriminos(globalFrame, first, second)
+  print(globalFrame - self.startFrame, "adding tetrimino:", getTetriminoNameById(first))
+  print(globalFrame - self.startFrame, "adding tetrimino:", getTetriminoNameById(second))
+  self.firstTetrimino  = first
+  self.secondTetrimino = second
+end
+
 function Game:addTetrimino (globalFrame, at, board)
-  --print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
-  self.tetriminos[globalFrame - self.startFrame] = at
+  print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
+  self.tetriminos[tostring(globalFrame - self.startFrame)] = at
   self.nrDrops = self.nrDrops + 1
   if(board ~= nil) then
     self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
@@ -213,23 +226,6 @@ function Game:conversionRatio()
   return (self.nrTimesReady == 0) and 0 or (self.tetrises / self.nrTimesReady)
 end
 
-function Game:getReplay()
-  local t = {}
-  t.startLevel = self.startLevel
-  t.frames = self.frames
-  t.tetriminos = self.tetriminos
-  return t
-end
-
-function Game:writeReplay()
-  local cjson  = require "cjson"
-  -- write a json file
-  local filename = "game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
-  local f = io.open(filename, "w")
-  f:write(cjson.encode(self:getReplay()))
-  f:flush()
-  f:close()
-end
 
 function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
