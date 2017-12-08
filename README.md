@@ -9,10 +9,6 @@ Like Tetris Friends, but Tetris Metrics.
 3. Open Lua console in fceux, and open tetris.lua.
 4. Press start button to start game.
 
-
-5. sudo luarocks install lua-cjson (https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
-
-
 ## Metrics
 
 ### Definitions
@@ -120,3 +116,7 @@ Like Tetris Friends, but Tetris Metrics.
   
   It is currently unknown what a pro players average presses per tetrimino would be close to
   for hyper-tappers and non-hyper-tappers.
+
+## Notes
+
+I included json.lua from here: http://files.luaforge.net/releases/json/json/0.9.50

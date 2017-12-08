@@ -41,9 +41,9 @@ local b = randomBoard()
 b:dump()
 
 -- write a json file
-local cjson  = require "cjson"
+local json  = require "json"
 local filename = "board-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
 local f = io.open(filename, "w")
-f:write(cjson.encode(b))
+f:write(json.encode(b))
 f:flush()
 f:close()
