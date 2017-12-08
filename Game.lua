@@ -213,6 +213,24 @@ function Game:conversionRatio()
   return (self.nrTimesReady == 0) and 0 or (self.tetrises / self.nrTimesReady)
 end
 
+function Game:getReplay()
+  local t = {}
+  t.startLevel = self.startLevel
+  t.frames = self.frames
+  t.tetriminos = self.tetriminos
+  return t
+end
+
+function Game:writeReplay()
+  local cjson  = require "cjson"
+  -- write a json file
+  local filename = "game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+  local f = io.open(filename, "w")
+  f:write(cjson.encode(self:getReplay()))
+  f:flush()
+  f:close()
+end
+
 function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
   return math.floor(num * mult + 0.5) / mult

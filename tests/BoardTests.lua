@@ -37,7 +37,13 @@ function randomBoard()
 end
 
 math.randomseed(os.time())
-randomBoard():dump()
+local b = randomBoard()
+b:dump()
 
--- require("tests/BoardTests")
--- randomBoard():dump()
+-- write a json file
+local cjson  = require "cjson"
+local filename = "board-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+local f = io.open(filename, "w")
+f:write(cjson.encode(b))
+f:flush()
+f:close()

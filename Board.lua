@@ -4,7 +4,6 @@ require 'helpers'
 EMPTY_SQUARE = 239
 
 Board = class(function(a, rawBoard)
-  a.rawBoard = rawBoard
   a.rows = {}
   for r=0,19 do a.rows[r]=Row(r,rawBoard[r]) end
 

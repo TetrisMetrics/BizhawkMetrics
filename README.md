@@ -9,6 +9,10 @@ Like Tetris Friends, but Tetris Metrics.
 3. Open Lua console in fceux, and open tetris.lua.
 4. Press start button to start game.
 
+
+5. sudo luarocks install lua-cjson (https://www.kyne.com.au/~mark/software/lua-cjson-manual.html)
+
+
 ## Metrics
 
 ### Definitions
