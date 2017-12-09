@@ -13,7 +13,8 @@ Game = class(function(a,startFrame,startLevel)
   a.firstTetrimino  = nil
   a.secondTetrimino = nil
 
-  a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+  --a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+  a.filename        = "tetris-game.json"
 
   a.drought         = Drought() -- the drought object helps calculate droughts
 
@@ -105,10 +106,13 @@ function Game:addFrame (globalFrame, previousInputs, newInputs)
   if nrPresses > 0 then
     -- change the ugly diffs to just true (for pressed) and false (for unpressed)
     for k,v in pairs(diff) do
-      if (deepEquals(v,PRESSED)) then diff[k] = 1 else diff[k] = 1 end
+      if (deepEquals(v,PRESSED)) then diff[k] = false else diff[k] = true end
     end
     self.frames[tostring(globalFrame - self.startFrame)] = diff
-    if diff ~= nil then self.nrPresses = self.nrPresses + nrPresses end
+    if diff ~= nil then
+      --print("frame", globalFrame - self.startFrame, "joypad", diff)
+      self.nrPresses = self.nrPresses + nrPresses
+    end
   end
 end
 
@@ -131,8 +135,8 @@ function Game:addClear (frame, nrLines)
 end
 
 function Game:setInitialTetriminos(globalFrame, first, second)
-  print(globalFrame - self.startFrame, "adding tetrimino:", getTetriminoNameById(first))
-  print(globalFrame - self.startFrame, "adding tetrimino:", getTetriminoNameById(second))
+  print(globalFrame - self.startFrame, "adding 1st tetrimino:", getTetriminoNameById(first))
+  print(globalFrame - self.startFrame, "adding 2nd tetrimino:", getTetriminoNameById(second))
   self.firstTetrimino  = first
   self.secondTetrimino = second
 end
