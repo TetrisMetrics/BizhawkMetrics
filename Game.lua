@@ -13,8 +13,8 @@ Game = class(function(a,startFrame,startLevel)
   a.firstTetrimino  = nil
   a.secondTetrimino = nil
 
-  --a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
-  a.filename        = "tetris-game.json"
+  a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+  --a.filename        = "tetris-game.json"
 
   a.drought         = Drought() -- the drought object helps calculate droughts
 
@@ -135,10 +135,14 @@ function Game:addClear (frame, nrLines)
 end
 
 function Game:setInitialTetriminos(globalFrame, first, second)
-  print(globalFrame - self.startFrame, "adding 1st tetrimino:", getTetriminoNameById(first))
-  print(globalFrame - self.startFrame, "adding 2nd tetrimino:", getTetriminoNameById(second))
-  self.firstTetrimino  = first
-  self.secondTetrimino = second
+  if self.firstTetrimino ~= nil then
+    --print("absolutely refusing to do that.")
+  else
+    print(globalFrame - self.startFrame, "adding 1st tetrimino:", getTetriminoNameById(first), first)
+    print(globalFrame - self.startFrame, "adding 2nd tetrimino:", getTetriminoNameById(second), second)
+    self.firstTetrimino  = first
+    self.secondTetrimino = second
+  end
 end
 
 function Game:addTetrimino (globalFrame, at, board)
