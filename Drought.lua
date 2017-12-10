@@ -4,7 +4,6 @@
 ---
 
 require 'Class'
-require 'List'
 require 'helpers'
 
 -- drought counting notes

@@ -1,7 +1,6 @@
 require ("Board")
 require ('Class')
 require ("Drought")
-require ('List')
 require ('helpers')
 
 -- TODO: APM ?
@@ -59,10 +58,7 @@ Game = class(function(a,startFrame,startLevel)
 end)
 
 function Game:dump()
-  --print("Game:")
-  --print("tetriminos: "              .. tableToList(self.tetriminos):dump())
-  --print("frames: "                  .. tableToList(self.frames):dump())
-  --print("clears: "                  .. tableToList(self.clears):dump())
+  print("Game:")
   print("  avg clear: "             .. self:avgClear())
   print("  avg accommodation: "     .. self:avgAccommodation())
   print("  avg max height: "        .. self:avgMaxHeight())
@@ -94,8 +90,8 @@ function Game:handleSurplus(b, linesThisTurn)
   if(haveBecomeReadyThisTurn) then self:addSurplus(b:getSurplus()) end
 end
 
-PRESSED   = { [1] = false,[2] = true }
-UNPRESSED = { [1] = true, [2] = false }
+PRESSED = { [1] = true, [2] = false }
+UNPRESSED   = { [1] = false,[2] = true }
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
@@ -106,13 +102,11 @@ function Game:addFrame (globalFrame, previousInputs, newInputs)
   if nrPresses > 0 then
     -- change the ugly diffs to just true (for pressed) and false (for unpressed)
     for k,v in pairs(diff) do
-      if (deepEquals(v,PRESSED)) then diff[k] = false else diff[k] = true end
+      if (deepEquals(v,PRESSED)) then diff[k] = true else diff[k] = false end
     end
     self.frames[tostring(globalFrame - self.startFrame)] = diff
-    if diff ~= nil then
-      --print("frame", globalFrame - self.startFrame, "joypad", diff)
-      self.nrPresses = self.nrPresses + nrPresses
-    end
+    --print("frame", globalFrame - self.startFrame, "joypad", diff)
+    self.nrPresses = self.nrPresses + nrPresses
   end
 end
 

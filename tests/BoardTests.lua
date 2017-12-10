@@ -42,4 +42,4 @@ math.randomseed(os.time())
 local b = randomBoard()
 b:dump()
 
-print(tableToString(gameReplayFromJsonFile("replays/tetris-game-12-08-2017_10-45.json")["tetriminos"]))
+print(tableToString(gameReplayFromJsonFile("replays/tetris-game.json")))

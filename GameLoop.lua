@@ -5,21 +5,36 @@ require("Memory")
 require("MetricsDisplay")
 
 game = nil
-currentInputs = joypad.get(1)
 
+-- the main loop. runs main function, advances frame, then loops.
+function loop(updateControllerInputs, updateTetriminos, onStart, onEnd, shouldDrawCheckerboard)
+  while true do
+    tick(updateControllerInputs, updateTetriminos, onStart, onEnd, shouldDrawCheckerboard)
+    emu.frameadvance()
+  end
+end
 
-function tick(updateControllerInputs, updateTetriminos, onStart, onEnd, shouldDrawCheckerboard)
+function tick(updateControllerInputs, updateTetriminos, onStart, onEnd)
   if isGameRunning() and game ~= nil then
-    updateControllerInputs();
+    updateControllerInputs(game);
     drawJoypad(gui, joypad.get(1));
-    updateTetriminos();
+    updateTetriminos(game);
     lockTetrimino()
     printMetrics(gui, memory, game);
-    if shouldDrawCheckerboard then displayCheckerboard() end
+    --if false then displayCheckerboard() end
   end
   updateGameStateGlobals();
-  if starting then onStart() end
-  if ending   then onEnd()   end
+
+  if starting then
+    game = Game(emu.framecount(), getLevel())
+    onStart(game)
+  end
+
+  if ending then
+    print("\n" .. "game ended on frame " .. emu.framecount() .. "\n")
+    if game ~= nil then game:dump() end
+    onEnd(game)
+  end
 end
 
 function lockTetrimino()

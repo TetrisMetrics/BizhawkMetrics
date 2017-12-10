@@ -5,13 +5,17 @@ require("GameLoop")
 require("GameReplay")
 require("Memory")
 
-shouldDrawCheckerboard = false
-gameStartFrameGlobal    = 0
+currentInputs = joypad.get(1)
+gameStartFrameGlobal = 0
 replay = gameReplayFromJsonFile("replays/tetris-game.json")
 
+function getFrameOffset()
+  return emu.framecount() - gameStartFrameGlobal
+end
+
 --
-function updateControllerInputs()
-  local frame = emu.framecount() - gameStartFrameGlobal
+function updateControllerInputs(game)
+  local frame = getFrameOffset()
   local j = replay.frames[tostring(frame)]
   if j ~= nil then
     --print("frame", frame, "joypad", j)
@@ -31,20 +35,15 @@ function updateControllerInputs()
   end
 end
 
-function onStart()
+function onStart(game)
   print("\n" .. "replay is starting on frame " .. emu.framecount() .. "\n")
   gameStartFrameGlobal = emu.framecount()
-  game = Game(emu.framecount(), getLevel())
 end
 
-function onEnd()
-  print("\n" .. "game ended on frame " .. emu.framecount() .. "\n")
-  if game ~= nil then game:dump() end
-  currentInputs = {}
-end
+function onEnd(game) currentInputs = {} end
 
-function updateTetriminos()
-  local frame = emu.framecount() - gameStartFrameGlobal
+function updateTetriminos(game)
+  local frame = getFrameOffset()
   -- when a game first starts, the tetriminos are always set to 19 and 14.
   -- so we need to detect when this changes, and add the first tetriminos to the game.
   if (frame == 4) then
@@ -54,15 +53,11 @@ function updateTetriminos()
     memory.writebyte(Addresses["NextTetriminoID"], replay.secondTetrimino)
   end
 
-  local tet  = replay["tetriminos"][tostring(emu.framecount() - 1 - gameStartFrameGlobal)]
+  local tet  = replay["tetriminos"][tostring(getFrameOffset() - 1)]
   if tet ~= nil then
     --print("frame", frame, "tet", getTetriminoNameById(tet))
     memory.writebyte(Addresses["NextTetriminoID"], tet)
   end
 end
 
--- the main loop. runs main function, advances frame, then loops.
-while true do
-  tick(updateControllerInputs, updateTetriminos, onStart, onEnd, shouldDrawCheckerboard)
-  emu.frameadvance()
-end
+loop(updateControllerInputs, updateTetriminos, onStart, onEnd)
