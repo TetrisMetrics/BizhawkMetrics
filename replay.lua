@@ -7,9 +7,10 @@ require("Memory")
 
 --emu.speedmode("turbo")
 
-currentInputs = joypad.get(1)
+currentInputs = {}
 gameStartFrameGlobal = 0
 replay = nil
+nextTet = nil
 
 function getFrameOffset()
   return emu.framecount() - gameStartFrameGlobal
@@ -39,6 +40,7 @@ end
 
 function onStart(game)
   print("\n" .. "replay is starting on frame " .. emu.framecount() .. "\n")
+  currentInputs = {}
   replay = getLatestReplay()
   gameStartFrameGlobal = emu.framecount()
 end
@@ -47,20 +49,26 @@ function onEnd(game) currentInputs = {} end
 
 function updateTetriminos(game)
   local frame = getFrameOffset()
-  -- when a game first starts, the tetriminos are always set to 19 and 14.
-  -- so we need to detect when this changes, and add the first tetriminos to the game.
+
   if (frame == 4) then
     print("frame", frame, "first",  getTetriminoNameById(replay.firstTetrimino))
     print("frame", frame, "second", getTetriminoNameById(replay.secondTetrimino))
-    memory.writebyte(Addresses["TetriminoID"],     replay.firstTetrimino)
-    memory.writebyte(Addresses["NextTetriminoID"], replay.secondTetrimino)
+    setTetrimino(replay.firstTetrimino)
+    nextTet = replay.secondTetrimino
+  else
+    local tet  = replay["tetriminos"][tostring(getFrameOffset() - 1)]
+    if tet ~= nil then
+      --print("frame", frame, "tet", getTetriminoNameById(tet))
+      --setTetrimino(getNextTetrimino())
+      nextTet = tet
+      --setNextTetrimino(tet)
+    end
   end
 
-  local tet  = replay["tetriminos"][tostring(getFrameOffset() - 1)]
-  if tet ~= nil then
-    --print("frame", frame, "tet", getTetriminoNameById(tet))
-    memory.writebyte(Addresses["NextTetriminoID"], tet)
+  if nextTet ~= nil then
+    setNextTetrimino(nextTet)
   end
+
 end
 
 loop(updateControllerInputs, updateTetriminos, onStart, onEnd)

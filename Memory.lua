@@ -23,12 +23,21 @@ Addresses = {
 }
 
 function readMemory(addr)   return memory.readbyte(Addresses[addr])   end
+function writeMemory(addr, value) memory.writebyte(Addresses[addr], value)  end
 
 function getTetrimino()     return readMemory("TetriminoID")     end
 function getNextTetrimino() return readMemory("NextTetriminoID") end
 function getPlayState()     return readMemory("PlayState")       end
 function getGameState()     return readMemory("GameState")       end
 function getLevel()         return readMemory("Level")           end
+
+function setTetrimino(t)
+  writeMemory("TetriminoID", t)
+end
+
+function setNextTetrimino(t)
+  writeMemory("NextTetriminoID", t)
+end
 
 function isGameStarting(oldState, newState)
   return oldState == 3 and newState == 4
