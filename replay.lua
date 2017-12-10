@@ -5,9 +5,11 @@ require("GameLoop")
 require("GameReplay")
 require("Memory")
 
+--emu.speedmode("turbo")
+
 currentInputs = joypad.get(1)
 gameStartFrameGlobal = 0
-replay = gameReplayFromJsonFile("replays/tetris-game.json")
+replay = nil
 
 function getFrameOffset()
   return emu.framecount() - gameStartFrameGlobal
@@ -37,6 +39,7 @@ end
 
 function onStart(game)
   print("\n" .. "replay is starting on frame " .. emu.framecount() .. "\n")
+  replay = getLatestReplay()
   gameStartFrameGlobal = emu.framecount()
 end
 

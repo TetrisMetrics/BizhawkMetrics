@@ -27,6 +27,15 @@ function gameReplayFromJsonFile (filename)
   return gameReplayJsonObject(filename, j)
 end
 
+function getLatestReplayFile ()
+  local rs = getSortedValues(scandir("./replays"))
+  return "./replays/" .. rs[#rs]
+end
+
+function getLatestReplay()
+  return gameReplayFromJsonFile(getLatestReplayFile())
+end
+
 function GameReplay:toJson()
   local t = {}
   t.startLevel      = self.startLevel

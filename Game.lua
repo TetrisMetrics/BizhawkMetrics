@@ -13,7 +13,6 @@ Game = class(function(a,startFrame,startLevel)
   a.secondTetrimino = nil
 
   a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
-  --a.filename        = "tetris-game.json"
 
   a.drought         = Drought() -- the drought object helps calculate droughts
 
