@@ -3,7 +3,6 @@
 --- DateTime: 10/25/2017 8:00 PM
 ---
 
-
 -- shallow diffs function
 function getTableDiffs(o1, o2)
   local keySet = {}
@@ -70,22 +69,30 @@ function tableToString(o, sort)
   end
 end
 
-function getSortedKeySet(tab)
+function getKeys(tab)
   local keyset={}
   local n=0
-
-  for k,v in pairs(tab) do
-    n=n+1
-    keyset[n]=k
-  end
-
-  table.sort(keyset)
-
+  for k,_ in pairs(tab) do n=n+1; keyset[n]=k end
   return keyset
 end
 
-function getFirstValueInTable(tab)
-  for _,v in pairs(tab) do return v end
+function getSortedKeys(tab)
+  local t = getKeys(tab)
+  table.sort(t)
+  return t
+end
+
+function getValues(tab)
+  local valueset={}
+  local n=0
+  for _,v in pairs(tab) do n=n+1; valueset[n]=v end
+  return valueset
+end
+
+function getSortedValues(tab)
+  local t = getValues(tab)
+  table.sort(t)
+  return t
 end
 
 function tableLength(T)
@@ -96,3 +103,15 @@ end
 
 function isOdd(n)  return n % 2 == 1 end
 function isEven(n) return n % 2 == 0 end
+
+-- Lua implementation of PHP scandir function
+function scandir(directory)
+  local i, t, popen = 0, {}, io.popen
+  local pfile = popen('dir /b "'..directory..'"')
+  for filename in pfile:lines() do
+    i = i + 1
+    t[i] = filename
+  end
+  pfile:close()
+  return t
+end

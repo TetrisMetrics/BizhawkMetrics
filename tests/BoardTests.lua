@@ -3,7 +3,9 @@
 --- DateTime: 11/4/17 10:07 AM
 ---
 
+require("helpers")
 require('Board')
+require("GameReplay")
 
 function randomBoard()
   function testRow()
@@ -37,7 +39,9 @@ function randomBoard()
 end
 
 math.randomseed(os.time())
-randomBoard():dump()
+local b = randomBoard()
+b:dump()
 
--- require("tests/BoardTests")
--- randomBoard():dump()
+print(getLatestReplayFile(scandir("./replays")))
+print(tableToString(getLatestReplay()))
+

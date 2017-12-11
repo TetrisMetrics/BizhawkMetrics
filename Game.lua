@@ -1,7 +1,6 @@
 require ("Board")
 require ('Class')
 require ("Drought")
-require ('List')
 require ('helpers')
 
 -- TODO: APM ?
@@ -10,12 +9,17 @@ Game = class(function(a,startFrame,startLevel)
   a.startFrame      = startFrame -- the exact NES frame the game started on.
   a.startLevel      = startLevel -- the level the game started on.
 
+  a.firstTetrimino  = nil
+  a.secondTetrimino = nil
+
+  a.filename        = "tetris-game-" .. os.date("%m-%d-%Y_%H-%M") .. ".json"
+
   a.drought         = Drought() -- the drought object helps calculate droughts
 
   a.frames          = {} -- list of everything that happened every frame. indexed by frame nr.
   a.tetriminos      = {} -- list of all the tetriminos that spawned, indexed by frame.
   a.clears          = {} -- list of every clear that happened, indexed by frame.
-  a.nrDrops         = -2 -- this weird -2 is fixed when we add the first two tetriminos
+  a.nrDrops         = 0
 
   a.accommodations  = 0 -- really this is accommodation total. total across all drops.
 
@@ -53,10 +57,7 @@ Game = class(function(a,startFrame,startLevel)
 end)
 
 function Game:dump()
-  --print("Game:")
-  --print("tetriminos: "              .. tableToList(self.tetriminos):dump())
-  --print("frames: "                  .. tableToList(self.frames):dump())
-  --print("clears: "                  .. tableToList(self.clears):dump())
+  print("Game:")
   print("  avg clear: "             .. self:avgClear())
   print("  avg accommodation: "     .. self:avgAccommodation())
   print("  avg max height: "        .. self:avgMaxHeight())
@@ -88,21 +89,23 @@ function Game:handleSurplus(b, linesThisTurn)
   if(haveBecomeReadyThisTurn) then self:addSurplus(b:getSurplus()) end
 end
 
-PRESSED   = { [1] = false,[2] = true }
-UNPRESSED = { [1] = true, [2] = false }
+PRESSED = { [1] = true, [2] = false }
+UNPRESSED   = { [1] = false,[2] = true }
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
 ---- only buttons that actually changed between this frame and the previous frame will appear in diffs.
-function Game:addFrame (globalFrame, j)
-  local diff = getTableDiffs(currentInputs, j)
-  if tableLength(diff) > 0 then
+function Game:addFrame (globalFrame, previousInputs, newInputs)
+  local diff = getTableDiffs(previousInputs, newInputs)
+  local nrPresses = tableLength(diff)
+  if nrPresses > 0 then
     -- change the ugly diffs to just true (for pressed) and false (for unpressed)
     for k,v in pairs(diff) do
-      if (deepEquals(v,PRESSED))   then diff[k] = 1 else diff[k] = 1 end
+      if (deepEquals(v,PRESSED)) then diff[k] = true else diff[k] = false end
     end
-    self.frames[globalFrame - self.startFrame] = diffs
-    if diffs ~= nil then self.nrPresses = self.nrPresses + tableLength(diffs) end
+    self.frames[tostring(globalFrame - self.startFrame)] = diff
+    --print("frame", globalFrame - self.startFrame, "joypad", diff)
+    self.nrPresses = self.nrPresses + nrPresses
   end
 end
 
@@ -112,7 +115,7 @@ function Game:isTetrisReady () return self.tetrisReady end
 function Game:getNrLines () return self.nrLines end
 
 function Game:addClear (frame, nrLines)
-  self.clears[frame] = nrLines
+  self.clears[frame - self.startFrame] = nrLines
   self.nrClears = self.nrClears + 1
   self.nrLines  = self.nrLines + nrLines
   if nrLines == 4 then
@@ -124,18 +127,28 @@ function Game:addClear (frame, nrLines)
   if nrLines == 1 then self.singles  = self.singles  + 1 end
 end
 
-function Game:addTetrimino (globalFrame, at, board)
-  --print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
-  self.tetriminos[globalFrame - self.startFrame] = at
-  self.nrDrops = self.nrDrops + 1
-  if(board ~= nil) then
-    self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
-    self.accommodations = self.accommodations + board:accommodationScore()
-    self.totalMaxHeight = self.totalMaxHeight + board.maxHeight
-    self.totalMinHeight = self.totalMinHeight + board.minHeight
-    self:addSlope(board.slope)
-    self:addBumpiness(board.bumpiness)
+function Game:setInitialTetriminos(globalFrame, first, second)
+  if self.firstTetrimino ~= nil then
+    --print("absolutely refusing to do that.")
+  else
+    print(globalFrame - self.startFrame, "adding 1st tetrimino:", getTetriminoNameById(first), first)
+    print(globalFrame - self.startFrame, "adding 2nd tetrimino:", getTetriminoNameById(second), second)
+    self.firstTetrimino  = first
+    self.secondTetrimino = second
   end
+end
+
+function Game:addTetrimino (globalFrame, at, board)
+  print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
+  self.tetriminos[tostring(globalFrame - self.startFrame)] = at
+  self.nrDrops = self.nrDrops + 1
+
+  self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
+  self.accommodations = self.accommodations + board:accommodationScore()
+  self.totalMaxHeight = self.totalMaxHeight + board.maxHeight
+  self.totalMinHeight = self.totalMinHeight + board.minHeight
+  self:addSlope(board.slope)
+  self:addBumpiness(board.bumpiness)
 end
 
 function Game:addSurplus (s)
@@ -212,6 +225,7 @@ function Game:avgPressesPerTetrimino () return self.nrPressesPerTet end
 function Game:conversionRatio()
   return (self.nrTimesReady == 0) and 0 or (self.tetrises / self.nrTimesReady)
 end
+
 
 function round(num, numDecimalPlaces)
   local mult = 10^(numDecimalPlaces or 0)
