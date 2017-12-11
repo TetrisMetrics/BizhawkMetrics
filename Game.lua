@@ -21,6 +21,7 @@ Game = class(function(a,startFrame,startLevel)
   a.clears          = {} -- list of every clear that happened, indexed by frame.
   a.nrDrops         = 0
 
+  a.accommodation   = 0
   a.accommodations  = 0 -- really this is accommodation total. total across all drops.
 
   a.totalMaxHeight  = 0 -- the total of the max heights at every drop
@@ -30,7 +31,8 @@ Game = class(function(a,startFrame,startLevel)
   a.nrTimesReady    = 0     -- how many times the board has been tetris ready
 
   a.lastTetris      = 0 -- tetrimino/drop count when we last got a tetris
-  a.readyDistance   = 0 -- total distance between last tetris and tetris readiness.
+  a.lastReadiness   = 0
+  a.totalReadiness  = 0 -- total distance between last tetris and tetris readiness.
 
   a.lastSurplus     = 0 -- number of blocks above perfection the last time we became tetris ready.
   a.totalSurplus    = 0 -- the total of all of those
@@ -69,7 +71,7 @@ function Game:dump()
   print("  avg ready distance: "    .. self:avgReadinessDistance())
   print("  avg presses (per tet): " .. self:avgPressesPerTetrimino())
   print("  avg slope: "             .. self:avgSlope())
-  print("  avg bumpiness: "         .. self:avgBumpiness())
+  print("  avg jaggedness: "        .. self:avgBumpiness())
 end
 
 -- this is all messy AF out the order is so arbitrary...
@@ -86,7 +88,10 @@ end
 function Game:handleSurplus(b, linesThisTurn)
   local notReadyLastTurn = not self:isTetrisReady()
   local haveBecomeReadyThisTurn = b:isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
-  if(haveBecomeReadyThisTurn) then self:addSurplus(b:getSurplus()) end
+  if(haveBecomeReadyThisTurn) then
+    print("booooom: ", b:getSurplus())
+    self:addSurplus(b:getSurplus())
+  end
 end
 
 PRESSED = { [1] = true, [2] = false }
@@ -144,6 +149,7 @@ function Game:addTetrimino (globalFrame, at, board)
   self.nrDrops = self.nrDrops + 1
 
   self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
+  self.accommodation  = board:accommodationScore()
   self.accommodations = self.accommodations + board:accommodationScore()
   self.totalMaxHeight = self.totalMaxHeight + board.maxHeight
   self.totalMinHeight = self.totalMinHeight + board.minHeight
@@ -157,7 +163,8 @@ function Game:addSurplus (s)
   self.totalSurplus = self.totalSurplus + s
   -- TODO: move this someplace better,
   -- or have a function, "become ready" that calls addSurplus and this
-  self.readyDistance = self.readyDistance + (self.nrDrops - self.lastTetris)
+  self.lastReadiness  = self.nrDrops - self.lastTetris
+  self.totalReadiness = self.totalReadiness + self.lastReadiness
 end
 
 function Game:addSlope (s)
@@ -209,7 +216,7 @@ function Game:avgPause ()
 end
 
 function Game:avgReadinessDistance ()
-  return (self.nrTimesReady == 0) and 0 or (self.readyDistance / self.nrTimesReady)
+  return (self.nrTimesReady == 0) and 0 or (self.totalReadiness / self.nrTimesReady)
 end
 
 function Game:avgSlope ()
