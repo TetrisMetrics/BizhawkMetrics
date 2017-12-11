@@ -43,6 +43,7 @@ Board = class(function(a, rawBoard)
 
   -- calculate tetris readiness
   a.tetrisReadyCol = -1
+  a.tetrisReadyRow = -1
 
   for r=19,3,-1 do
     local col = a.rows[r].well
@@ -55,6 +56,7 @@ Board = class(function(a, rawBoard)
       if blockHasTetrisReadyWell and wellIsClosedBelow and wellIsOpenAbove then
         -- only here have we found that we are tetris ready :)
         a.tetrisReadyCol = col
+        a.tetrisReadyRow = r
         break;
       end
     end
@@ -63,9 +65,9 @@ end)
 
 function Board:isTetrisReady() return self.tetrisReadyCol ~= -1 end
 
-function Board:getSurplus(tetrisReadyCol)
-  local r = tetrisReadyCol
-  if r == nil then r = self.tetrisReadyCol end
+function Board:getSurplus(tetrisReadyRow)
+  local r = tetrisReadyRow
+  if r == nil then r = self.tetrisReadyRow end
   if r == -1  then return -1 else return self:blocksAboveRow(r-4) end
   return r
 end
@@ -107,9 +109,11 @@ end
 
 function Board:dump()
   for i = 0, 19 do print(self.rows[i]:dump()) end
-  local r = self.tetrisReadyCol
+  local c = self.tetrisReadyCol
+  local r = self.tetrisReadyRow
   if r ~= -1 then
-    print("Tetris ready col: ", r + 1)
+    print("Tetris ready col: ", c + 1)
+    print("Tetris ready row: ", r + 1)
     print("surplus: ", self:getSurplus())
   else
     print("board not tetris ready")
