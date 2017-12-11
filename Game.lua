@@ -19,7 +19,7 @@ Game = class(function(a,startFrame,startLevel)
   a.frames          = {} -- list of everything that happened every frame. indexed by frame nr.
   a.tetriminos      = {} -- list of all the tetriminos that spawned, indexed by frame.
   a.clears          = {} -- list of every clear that happened, indexed by frame.
-  a.nrDrops         = -2 -- this weird -2 is fixed when we add the first two tetriminos
+  a.nrDrops         = 0
 
   a.accommodations  = 0 -- really this is accommodation total. total across all drops.
 
@@ -142,14 +142,13 @@ function Game:addTetrimino (globalFrame, at, board)
   print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
   self.tetriminos[tostring(globalFrame - self.startFrame)] = at
   self.nrDrops = self.nrDrops + 1
-  if(board ~= nil) then
-    self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
-    self.accommodations = self.accommodations + board:accommodationScore()
-    self.totalMaxHeight = self.totalMaxHeight + board.maxHeight
-    self.totalMinHeight = self.totalMinHeight + board.minHeight
-    self:addSlope(board.slope)
-    self:addBumpiness(board.bumpiness)
-  end
+
+  self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
+  self.accommodations = self.accommodations + board:accommodationScore()
+  self.totalMaxHeight = self.totalMaxHeight + board.maxHeight
+  self.totalMinHeight = self.totalMinHeight + board.minHeight
+  self:addSlope(board.slope)
+  self:addBumpiness(board.bumpiness)
 end
 
 function Game:addSurplus (s)
