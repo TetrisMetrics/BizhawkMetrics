@@ -233,7 +233,7 @@ function initialize_things()
   not_advanced = 20
   global_innovation = 0
   current_species = 0
-  population = 200
+  population_size = 200
   compatibility_threshold = 1.0
   c1 = 1
   c2 = 1
@@ -288,7 +288,7 @@ function display_info()
 
   gui.drawText(-1, 224, "Fitness:".. round(fitness), black, none)
   gui.drawText(90, 224, "Max Fitness:"..round(global_max_fitness), black, none)
-  gui.drawText(215, 224, "Member:"..pop.member.."/"..population, black, none)
+  gui.drawText(215, 224, "Member:"..pop.member.."/".. population_size, black, none)
 
   if pop.frame_count % 10 == 0 then
     forms.settext(l_generation, "Generation: "..pop.generation)
@@ -296,7 +296,7 @@ function display_info()
     forms.settext(l_genome, "Genome: "..pop.current_genome)
     forms.settext(l_fitness, "Fitness: "..round(fitness))
     forms.settext(l_max_fitness, "Max Fitness: "..round(global_max_fitness))
-    forms.settext(l_member, "Member: "..pop.member.."/"..population)
+    forms.settext(l_member, "Member: "..pop.member.."/".. population_size)
   end
 
   -------------------------------------------------------------------------------
@@ -365,7 +365,7 @@ function load_map()
 end
 
 function initialize_population()
-  pop = new_pop()
+  pop = new_pop(population_size)
 
   for i = 1, pop.size do
     local genome = new_genome()
@@ -373,10 +373,10 @@ function initialize_population()
     speciate(genome)
   end
 
-  refresh()
+  refresh(pop)
   next_genome(pop,false)
   initialize_run(false)
-  create_backup("backup_"..state_file.."_gen_0.txt")
+  create_backup("backup_"..state_file.."_gen_0.txt", global_best_genome, pop)
 end
 
 function get_objects()
@@ -594,8 +594,13 @@ end
 
 function get_outputs()
   get_inputs()
-  local outputs = evaluate_network(current_network)
-  return outputs
+
+  is = {}
+  for i = 1, num_inputs - 1 do
+    is.nodes[i].value = tiles[i].t
+  end
+
+  return evaluate_network(current_network, is)
 end
 
 function basic_ai()
@@ -852,7 +857,7 @@ end
 
 function save_here()
   local file_name = forms.gettext(load_save_backup)
-  create_backup(file_name)
+  create_backup(file_name, global_best_genome, pop)
 end
 
 function load_generation()
@@ -867,149 +872,89 @@ function replay_best()
   initialize_run(true)
 end
 
-function create_backup(file_name)
-  local file = assert(io.open(file_name, "w"))
-
-  -- first save the best genome
-  file:write(global_best_genome.fitness.." ")
-  file:write(global_best_genome.num_neurons.." ")
-  file:write(#global_best_genome.genes.. "\n")
-  for g, gene in pairs(global_best_genome.genes) do
-    file:write(gene.in_node.." ")
-    file:write(gene.out_node.." ")
-    file:write(gene.weight.." ")
-    file:write(gene.innovation.." ")
-    if gene.enable then
-      file:write("1\n")
-    else
-      file:write("0\n")
-    end
+function clear_controller()
+  controller = {}
+  for i = 1, #button_input_names do
+    local button = button_input_names[i]
+    controller[button] = false
   end
-
-  -- then save the entire population
-  file:write(pop.generation.." ")
-  file:write(global_max_fitness.." ")
-  file:write(#pop.species.."\n")
-  for s, species in pairs(pop.species) do
-    file:write(species.fitness.." ")
-    file:write(species.improvement_age.." ")
-    file:write(#species.genomes.."\n")
-    for g, genome in pairs(species.genomes) do
-      file:write(genome.fitness.." ")
-      file:write(genome.num_neurons.." ")
-      if genome.received_trial then
-        file:write("1 ")
-      else
-        file:write("0 ")
-      end
-      file:write(#genome.genes.."\n")
-      for h, gene in pairs(genome.genes) do
-        file:write(gene.in_node.." ")
-        file:write(gene.out_node.." ")
-        file:write(gene.weight.." ")
-        file:write(gene.innovation.." ")
-        if gene.enable then
-          file:write("1\n")
-        else
-          file:write("0\n")
-        end
-      end
-    end
-  end
-
-  file:close()
 end
 
-function load_backup(file_name)
-  local file = assert(io.open(file_name, "r"))
-
-  -- first read the best genome
-  global_best_genome = {}
-  global_best_genome = new_genome()
-  local num_genes = 0
-  global_best_genome.fitness,
-  global_best_genome.num_neurons,
-  num_genes = file:read("*number", "*number", "*number")
-  for g = 1, num_genes do
-    local genes = new_gene()
-    table.insert(global_best_genome.genes, genes)
-    genes.in_node,
-    genes.out_node,
-    genes.weight,
-    genes.innovation,
-    genes.enable = file:read(
-    "*number", "*number", "*number", "*number", "*number"
+function initialize_run(best_run)
+  savestate.load(state_file)
+  highest_fitness = 0
+  highest_distance = 0
+  fitness = 0
+  gain = 0
+  pop.frame_count = -1
+  advanced = 0
+  not_advanced = 20
+  clear_controller()
+  if best_run then
+    current_network = create_network(global_best_genome)
+  else
+    current_network = create_network(
+    pop.species[pop.current_species].genomes[pop.current_genome]
     )
-    if genes.enable == 1 then
-      genes.enable = true
-    else
-      genes.enable = false
-    end
+  end
+  controller = get_outputs()
+end
+
+function refresh(pop)
+  -- http://tinyclouds.org/rant.html (warning: profanity)
+  -- because he criticizes those who space things out nicely
+  -- i don't agree with him entirely, but at least it is kind of funny
+  pop.frame_count = pop.frame_count + 1
+
+  distance = mainmemory.read_s16_be(dist_addr)
+
+  k_sin    = mainmemory.readfloat(kart.sin,     true)
+  k_cos    = mainmemory.readfloat(kart.cos,     true)
+
+  kart_x   = mainmemory.readfloat(kart.x_addr,  true)
+  kart_xv  = mainmemory.readfloat(kart.xv_addr, true) * 12
+  kart_y   = mainmemory.readfloat(kart.y_addr,  true)
+  kart_yv  = mainmemory.readfloat(kart.yv_addr, true) * 12
+  kart_z   = mainmemory.readfloat(kart.z_addr,  true)
+  kart_zv  = mainmemory.readfloat(kart.zv_addr, true) * 12
+
+  XYspeed  = math.sqrt (kart_xv^2+kart_yv^2)
+  XYZspeed = math.sqrt (kart_xv^2+kart_yv^2+kart_zv^2)
+end
+
+
+-------------------------------------------------------------------------------
+-------------------------------------    --------------------------------------
+-------------------------------------------------------------------------------
+event.onexit(game_over)
+game = gameinfo.getromname()
+right_game = "Mario Kart 64 (USA)" == game
+
+if right_game then
+  initialize_things()
+  create_form()
+else
+  pn("wrong game")
+end
+
+while right_game do
+  refresh(pop)
+
+  if pop.frame_count % 5 == 0 then
+    clear_controller()
+    -- controller = basic_ai()
+    controller = get_outputs()
   end
 
-  -- then read the rest of the population
-  pop = {}
-  pop = new_pop()
-  local num_species
-  pop.generation,
-  global_max_fitness,
-  num_species = file:read("*number", "*number", "*number")
-  for s = 1, num_species do
-    local species = new_species()
-    table.insert(pop.species, species)
-    local num_genomes
-    species.fitness,
-    species.improvement_age,
-    num_genomes = file:read("*number", "*number", "*number")
-    for g = 1, num_genomes do
-      local genome = new_genome()
-      table.insert(species.genomes, genome)
-      local received_trial
-      genome.fitness,
-      genome.num_neurons,
-      received_trial,
-      num_genes = file:read(
-      "*number", "*number", "*number", "*number"
-      )
-      if received_trial == 1 then
-        genome.received_trial = true
-      else
-        genome.received_trial = false
-      end
-      for h = 1, num_genes do
-        local gene = new_gene()
-        table.insert(genome.genes, gene)
-        gene.in_node,
-        gene.out_node,
-        gene.weight,
-        gene.innovation,
-        gene.enable = file:read(
-        "*number", "*number", "*number", "*number", "*number"
-        )
-        if gene.enable == 1 then
-          gene.enable = true
-        else
-          gene.enable = false
-        end
-      end -- end gene loop
-    end -- end genome loop
-  end -- end species loop
+  handle_form()
+  joypad.set(controller)
 
-  file:close()
-
-  -- we need to advance to the genome we were on when we saved this file
-  pop.current_species = 1
-  pop.current_genome = 1
-  pop.member = 1
-  local received_trial = true
-  while received_trial do
-    next_genome(pop,false)
-    local species = pop.species[pop.current_species]
-    local genome = species.genomes[pop.current_genome]
-    received_trial = genome.received_trial
+  if is_dead() then
+    next_genome(pop,true)
+    initialize_run(false)
   end
 
-  initialize_run(false)
+  emu.frameadvance()
 end
 
 function is_dead()
@@ -1060,89 +1005,4 @@ function is_dead()
   end
 
   return false
-end
-
-function clear_controller()
-  controller = {}
-  for i = 1, #button_input_names do
-    local button = button_input_names[i]
-    controller[button] = false
-  end
-end
-
-function initialize_run(best_run)
-  savestate.load(state_file)
-  highest_fitness = 0
-  highest_distance = 0
-  fitness = 0
-  gain = 0
-  pop.frame_count = -1
-  advanced = 0
-  not_advanced = 20
-  clear_controller()
-  if best_run then
-    current_network = create_network(global_best_genome)
-  else
-    current_network = create_network(
-    pop.species[pop.current_species].genomes[pop.current_genome]
-    )
-  end
-  controller = get_outputs()
-end
-
-function refresh()
-  -- http://tinyclouds.org/rant.html (warning: profanity)
-  -- because he criticizes those who space things out nicely
-  -- i don't agree with him entirely, but at least it is kind of funny
-  pop.frame_count = pop.frame_count + 1
-
-  distance = mainmemory.read_s16_be(dist_addr)
-
-  k_sin    = mainmemory.readfloat(kart.sin,     true)
-  k_cos    = mainmemory.readfloat(kart.cos,     true)
-
-  kart_x   = mainmemory.readfloat(kart.x_addr,  true)
-  kart_xv  = mainmemory.readfloat(kart.xv_addr, true) * 12
-  kart_y   = mainmemory.readfloat(kart.y_addr,  true)
-  kart_yv  = mainmemory.readfloat(kart.yv_addr, true) * 12
-  kart_z   = mainmemory.readfloat(kart.z_addr,  true)
-  kart_zv  = mainmemory.readfloat(kart.zv_addr, true) * 12
-
-  XYspeed  = math.sqrt (kart_xv^2+kart_yv^2)
-  XYZspeed = math.sqrt (kart_xv^2+kart_yv^2+kart_zv^2)
-end
-
-
--------------------------------------------------------------------------------
--------------------------------------    --------------------------------------
--------------------------------------------------------------------------------
-event.onexit(game_over)
-game = gameinfo.getromname()
-right_game = "Mario Kart 64 (USA)" == game
-
-if right_game then
-  initialize_things()
-  create_form()
-else
-  pn("wrong game")
-end
-
-while right_game do
-  refresh()
-
-  if pop.frame_count % 5 == 0 then
-    clear_controller()
-    -- controller = basic_ai()
-    controller = get_outputs()
-  end
-
-  handle_form()
-  joypad.set(controller)
-
-  if is_dead() then
-    next_genome(pop,true)
-    initialize_run(false)
-  end
-
-  emu.frameadvance()
 end

@@ -31,6 +31,15 @@ function getPlayState()     return readMemory("PlayState")       end
 function getGameState()     return readMemory("GameState")       end
 function getLevel()         return readMemory("Level")           end
 
+function readScore()
+  function read1(addr)
+    local b  = memory.readbyteunsigned(addr)
+    local b_ = math.floor(b / 16) * 10 + (b % 16)
+    return "" .. (b_ < 10 and ("0" .. b_) or b_)
+  end
+  return tonumber(read1(0x0055) .. read1(0x0054) .. read1(0x0053))
+end
+
 function setTetrimino(t)
   writeMemory("TetriminoID", t)
 end

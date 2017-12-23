@@ -4,9 +4,9 @@ function round(num, idp)
   return math.floor(num * mult + 0.5) / mult
 end
 
-function new_pop()
+function new_pop(size)
   local pop = {}
-  pop.size = population
+  pop.size = size
   pop.species = {}
   pop.generation = 1
   pop.current_species = 1
@@ -81,7 +81,7 @@ end
 function new_innovation(n1, n2)
   -- TODO check for existing innovation
   global_innovation = global_innovation + 1
-  -- pn(global_innovation)
+  -- print(global_innovation)
   return global_innovation
 end
 
@@ -450,7 +450,7 @@ function calculate_average_fitness()
       sum = sum + old_pop.species[s].genomes[g].fitness
     end
   end
-  return sum / population
+  return sum / population_size
 end
 
 function calculate_spawn_levels()
@@ -466,11 +466,11 @@ function calculate_spawn_levels()
     end
     species.spawn_number = round(species.spawn_number)
     if species.spawn_number > 0 then
-      pn('species spawn number: '..species.spawn_number) -- debug
+      print('species spawn number: '..species.spawn_number) -- debug
     end
     spawn_total = spawn_total + species.spawn_number -- debug
   end
-  pn('spawn total: '..spawn_total) -- debug
+  print('spawn total: '..spawn_total) -- debug
 end
 
 function contains_innovation(genes, i)
@@ -516,7 +516,7 @@ function make_babies(pop, old_pop)
     local chosen_best_yet = false
     local species = old_pop.species[s]
 
-    while species.spawn_number >= 1 and current_pop_size() < population do
+    while species.spawn_number >= 1 and current_pop_size() < population_size do
 
       if not chosen_best_yet then
         -- put the best genome in the new pop first for per
@@ -569,7 +569,7 @@ function make_babies(pop, old_pop)
   -- make sure the population is full
   -- TODO force this to choose from genomes that have a fitness above zero
   local i = 0
-  while current_pop_size() < population do
+  while current_pop_size() < population_size do
     i = i + 1
     local k = 10
     local r_species
@@ -589,12 +589,12 @@ function make_babies(pop, old_pop)
     winner.received_trial = false
     speciate(winner)
   end
-  if i > 0 then pn("fill: "..i) end
+  if i > 0 then print("fill: "..i) end
 end
 
 function new_generation(pop)
-  -- pn('new_generation()')
-  create_backup("backup_"..state_file.."_gen_"..pop.generation..".txt")
+  -- print('new_generation()')
+  create_backup("backup_"..state_file.."_gen_"..pop.generation..".txt", global_best_genome, pop)
 
   math.randomseed(os.time())
 
@@ -616,17 +616,15 @@ function next_genome(pop, check_for_best)
   local genome = pop.species[pop.current_species].genomes[pop.current_genome]
 
   if check_for_best and genome.fitness > global_best_genome.fitness then
-    global_best_genome = {}
-    -- global_best_genome = new_genome()
     global_best_genome = copy_genome(genome)
     create_backup( -- the save button is kind of obsolete when this is here
     state_file.."_"..pop.generation.."_"..pop.current_species.."_"
-    ..pop.current_genome.."_best.txt"
+    ..pop.current_genome.."_best.txt", global_best_genome, pop
     )
   end
 
   if pop.generation > 1 and pop.member % 5 == 0 then
-    create_backup(state_file.."_frequent_backup.txt")
+    create_backup(state_file.."_frequent_backup.txt", global_best_genome, pop)
   end
 
   -- go to next genome, species, or generation
@@ -648,8 +646,6 @@ function new_node()
   return node
 end
 
-
-
 function create_network(genome)
   local network = {}
   network.nodes = {}
@@ -670,7 +666,7 @@ function create_network(genome)
   -- create nodes from genes, if they don't exist yet
   for g = 1, #genome.genes do
     local gene = genome.genes[g]
-    -- pn(gene)
+    -- print(gene)
     if gene.enable then
       -- does this gene's out node exist?
       if network.nodes[gene.out_node] == nil then
@@ -694,11 +690,11 @@ function sigmoid(x)
   return 2 / (1 + math.exp(-x))
 end
 
-function evaluate_network(current_network)
+function evaluate_network(current_network, inputs)
   local outputs = {}
 
   for i = 1, num_inputs - 1 do
-    current_network.nodes[i].value = tiles[i].t
+    current_network.nodes[i].value = inputs[i]
   end
 
   for i, node in pairs(current_network.nodes) do
@@ -727,3 +723,146 @@ function evaluate_network(current_network)
 end
 
 
+function create_backup(file_name, global_best_genome, pop)
+  local file = assert(io.open(file_name, "w"))
+
+  -- first save the best genome
+  file:write(global_best_genome.fitness.." ")
+  file:write(global_best_genome.num_neurons.." ")
+  file:write(#global_best_genome.genes.. "\n")
+  for g, gene in pairs(global_best_genome.genes) do
+    file:write(gene.in_node.." ")
+    file:write(gene.out_node.." ")
+    file:write(gene.weight.." ")
+    file:write(gene.innovation.." ")
+    if gene.enable then
+      file:write("1\n")
+    else
+      file:write("0\n")
+    end
+  end
+
+  -- then save the entire population
+  file:write(pop.generation.." ")
+  file:write(global_max_fitness.." ")
+  file:write(#pop.species.."\n")
+  for s, species in pairs(pop.species) do
+    file:write(species.fitness.." ")
+    file:write(species.improvement_age.." ")
+    file:write(#species.genomes.."\n")
+    for g, genome in pairs(species.genomes) do
+      file:write(genome.fitness.." ")
+      file:write(genome.num_neurons.." ")
+      if genome.received_trial then
+        file:write("1 ")
+      else
+        file:write("0 ")
+      end
+      file:write(#genome.genes.."\n")
+      for h, gene in pairs(genome.genes) do
+        file:write(gene.in_node.." ")
+        file:write(gene.out_node.." ")
+        file:write(gene.weight.." ")
+        file:write(gene.innovation.." ")
+        if gene.enable then
+          file:write("1\n")
+        else
+          file:write("0\n")
+        end
+      end
+    end
+  end
+
+  file:close()
+end
+
+function load_backup(file_name)
+  local file = assert(io.open(file_name, "r"))
+
+  -- first read the best genome
+  global_best_genome = {}
+  global_best_genome = new_genome()
+  local num_genes = 0
+  global_best_genome.fitness,
+  global_best_genome.num_neurons,
+  num_genes = file:read("*number", "*number", "*number")
+  for g = 1, num_genes do
+    local genes = new_gene()
+    table.insert(global_best_genome.genes, genes)
+    genes.in_node,
+    genes.out_node,
+    genes.weight,
+    genes.innovation,
+    genes.enable = file:read(
+    "*number", "*number", "*number", "*number", "*number"
+    )
+    if genes.enable == 1 then
+      genes.enable = true
+    else
+      genes.enable = false
+    end
+  end
+
+  -- then read the rest of the population
+  pop = new_pop(population_size)
+  local num_species
+  pop.generation,
+  global_max_fitness,
+  num_species = file:read("*number", "*number", "*number")
+  for s = 1, num_species do
+    local species = new_species()
+    table.insert(pop.species, species)
+    local num_genomes
+    species.fitness,
+    species.improvement_age,
+    num_genomes = file:read("*number", "*number", "*number")
+    for g = 1, num_genomes do
+      local genome = new_genome()
+      table.insert(species.genomes, genome)
+      local received_trial
+      genome.fitness,
+      genome.num_neurons,
+      received_trial,
+      num_genes = file:read(
+      "*number", "*number", "*number", "*number"
+      )
+      if received_trial == 1 then
+        genome.received_trial = true
+      else
+        genome.received_trial = false
+      end
+      for h = 1, num_genes do
+        local gene = new_gene()
+        table.insert(genome.genes, gene)
+        gene.in_node,
+        gene.out_node,
+        gene.weight,
+        gene.innovation,
+        gene.enable = file:read(
+        "*number", "*number", "*number", "*number", "*number"
+        )
+        if gene.enable == 1 then
+          gene.enable = true
+        else
+          gene.enable = false
+        end
+      end -- end gene loop
+    end -- end genome loop
+  end -- end species loop
+
+  file:close()
+
+  -- we need to advance to the genome we were on when we saved this file
+  pop.current_species = 1
+  pop.current_genome = 1
+  pop.member = 1
+  local received_trial = true
+  while received_trial do
+    next_genome(pop,false)
+    local species = pop.species[pop.current_species]
+    local genome = species.genomes[pop.current_genome]
+    received_trial = genome.received_trial
+  end
+
+  initialize_run(false)
+end

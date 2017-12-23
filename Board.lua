@@ -63,6 +63,16 @@ Board = class(function(a, rawBoard)
   end
 end)
 
+function Board:flatten()
+  local res = {}
+  for c=0,9 do
+    for r=0,19 do
+      res[(10*r) + c] = self.rows[r].cols[c] == EMPTY_SQUARE and 0 or 1
+    end
+  end
+  return res
+end
+
 function Board:isTetrisReady() return self.tetrisReadyCol ~= -1 end
 
 function Board:getSurplus(tetrisReadyRow)

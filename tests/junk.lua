@@ -99,3 +99,80 @@
 --    linesCleared = newVal
 --  end
 --end)
+
+
+
+
+
+--function clear_controller()
+--  is        = {}
+--  is.start  = false
+--  is.select = false
+--  is.A      = false
+--  is.B      = false
+--  is.up     = false
+--  is.down   = false
+--  is.left   = false
+--  is.right  = false
+--  joypad.write(1, is)
+--end
+
+--local tetriminos = { 0, 0 }
+--local playfield = createEmptyPlayfield()
+--local ai = newAI(2)
+--local movesIndex = 1
+--local moves = { }
+--local tetriminoType = 0
+--
+--buildOrientationTable()
+
+
+--if (isPlaying(gameState)) then
+--
+--  calculateFitness(game, board)
+--
+--
+--  if movesIndex <= #moves then
+--    makeMove(tetriminoType, moves[movesIndex], movesIndex == #moves)
+--    movesIndex = movesIndex + 1
+--  else
+--    unregisterYUpdatedListeners()
+--    if spawned() then
+--      tetriminoType = readTetrimino()
+--      moves = search(tetriminos, playfield, ai)
+--      movesIndex = 1
+--      registerYUpdatedListeners()
+--    end
+--  end
+--end
+
+
+
+--local f = myAi.computeFitness()
+--print("fitness is: ", f)
+--
+--
+--local playfield = createEmptyPlayfield()
+--readPlayfield(playfield)
+--
+--local playfieldUtil = newPlayfieldUtil()
+--local e = newPlayfieldEvaluation()
+--playfieldUtil.evaluatePlayfield(playfield, e)
+--
+--
+--local WEIGHTS = {
+--  1.0,
+--  12.885008263218383,
+--  15.842707182438396,
+--  26.89449650779595,
+--  27.616914062397015,
+--  30.18511071927904,
+--}
+--
+--local f2 = WEIGHTS[3] * e.wells
+--         + WEIGHTS[4] * e.holes
+--         + WEIGHTS[5] * e.columnTransitions
+--         + WEIGHTS[6] * e.rowTransitions
+--print("fitness2 is: ", f2)
+
+--return f
