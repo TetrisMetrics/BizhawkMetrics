@@ -93,7 +93,7 @@ end
 
 function displayDroughtOnNES(memory, drought)
   local droughtLength = drought["drought"]
-  local pauseLength   = drought["paused"]
+  local pauseLength   = drought["pauseTime"]
 
   -- Write drought counter to NES RAM so that it can be displayed.
   memory.writebyte(0x03fe, droughtLength);

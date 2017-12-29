@@ -22,33 +22,38 @@ Drought = class(function(a, tet)
   a.pauseTime    = 0
 end)
 
+function Drought:copy ()
+  local res = Drought(self.tetrimino)
+  res.tetrisReady = self.tetrisReady
+  res.drought     = self.drought
+  res.paused      = self.paused
+  res.pauseTime   = self.pauseTime
+  return res
+end
+
 function Drought:endTurn(nrLinesThisTurn, tetrisReadyAfterTurn, nextTet, game)
+  local res = self:copy()
+
   if nrLinesThisTurn == 4 then
     -- we got a tetris. record drought and reset it
-    game:addDrought(self.drought)
-    self.drought = 0
-    self.paused = false
+    game:addDrought(res.drought)
+    res.drought = 0
+    res.paused = false
   -- TODO: actually, we should record the number of times you failed to tetris when you could...
   -- else, if we have a line, toss out drought
-  elseif self.tetrimino == 18 and not self.paused then
-    self.drought = 0
-  elseif self.tetrisReady and not tetrisReadyAfterTurn then
-    -- we were tetris ready, but now we are not. draught must be paused.
-    self.paused = true
-  elseif self.paused and tetrisReadyAfterTurn then
-    game:addPause(self.pauseTime)
-    self.paused = false
-    self.pauseTime = 0
+  elseif res.tetrimino == 18 and not res.paused then
+    res.drought = 0
+  elseif res.tetrisReady and not tetrisReadyAfterTurn then
+    -- we were tetris ready, but now we are not. drought must be paused.
+    res.paused = true
+  elseif res.paused and tetrisReadyAfterTurn then
+    game:addPause(res.pauseTime)
+    res.paused = false
+    res.pauseTime = 0
   end
 
-  self.tetrisReady = tetrisReadyAfterTurn
-  self.tetrimino   = nextTet
-
-  if self.tetrisReady then
-    self.drought = self.drought + 1
-  elseif self.paused then
-    self.pauseTime = self.pauseTime + 1
-  end
-
-  return {["drought"] = self.drought, ["paused"] = self.pauseTime}
+  res.tetrisReady = tetrisReadyAfterTurn
+  res.drought     = res.tetrisReady and res.drought   + 1 or res.drought
+  res.pauseTime   = res.paused      and res.pauseTime + 1 or res.pauseTime
+  return res
 end

@@ -78,24 +78,28 @@ end
 function Game:lock (at, nt, b, frame, linesThisTurn)
   game:addTetrimino(frame, nt, b)
   if linesThisTurn > 0 then self:addClear(frame, linesThisTurn) end
+
   local drought = self.drought:endTurn(linesThisTurn, b:isTetrisReady(), at, self)
-  self:handleSurplus(b, linesThisTurn)
+  self:handleSurplus(b, linesThisTurn, self.drought.paused)
+  self.drought = drought
+
   self:setTetrisReady(b:isTetrisReady())
+
   return drought
 end
 
--- if we just became tetris ready, record the surplus
-function Game:handleSurplus(b, linesThisTurn)
+-- if we just became tetris ready, record the surplus,
+-- unless we've become ready by unpausing (unblocking a well)
+function Game:handleSurplus(b, linesThisTurn, wasPaused)
   local notReadyLastTurn = not self:isTetrisReady()
   local haveBecomeReadyThisTurn = b:isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
-  if(haveBecomeReadyThisTurn) then
-    print("booooom: ", b:getSurplus())
+  if(haveBecomeReadyThisTurn and not wasPaused) then
     self:addSurplus(b:getSurplus())
   end
 end
 
-PRESSED = { [1] = true, [2] = false }
-UNPRESSED   = { [1] = false,[2] = true }
+PRESSED   = { [1] = true,  [2] = false }
+UNPRESSED = { [1] = false, [2] = true }
 
 ---- a diff will take the form {"P1 UP": PRESSED, "P1 A": UNPRESSED, ...}
 ---- for now...
