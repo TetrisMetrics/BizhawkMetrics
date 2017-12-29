@@ -34,3 +34,21 @@ function updateTetriminos(game)
 end
 
 loop(updateControllerInputs, updateTetriminos, onStart, onEnd)
+
+
+--[[
+int generateNextPseudorandomNumber(int value) {
+  return ((((value >> 9) & 1) ^ ((value >> 1) & 1)) << 15) | (value >> 1);
+}
+
+Type	Probability
+T	14.73%
+J	14.29%
+Z	14.29%
+O	14.29%
+S	14.73%
+L	13.84%
+I	13.84%
+
+14.73+14.29+14.29+14.29+14.73+13.84+13.84
+]]

@@ -89,7 +89,6 @@ function Game:handleSurplus(b, linesThisTurn)
   local notReadyLastTurn = not self:isTetrisReady()
   local haveBecomeReadyThisTurn = b:isTetrisReady() and (notReadyLastTurn or linesThisTurn == 4)
   if(haveBecomeReadyThisTurn) then
-    print("booooom: ", b:getSurplus())
     self:addSurplus(b:getSurplus())
   end
 end

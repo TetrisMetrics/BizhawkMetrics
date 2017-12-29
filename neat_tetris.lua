@@ -45,6 +45,20 @@ function normalize_x(x) return normalize(x, 0,9) end
 function normalize_y(y) return normalize(y, 0,19) end
 function normalize_level(l) return normalize(l, 0,29) end
 
+
+function clear_controller()
+  is        = {}
+  is.start  = false
+  is.select = false
+  is.A      = false
+  is.B      = false
+  is.up     = false
+  is.down   = false
+  is.left   = false
+  is.right  = false
+  joypad.write(1, is)
+end
+
 function updateControllerInputs(game, board)
   local is = board:flatten()
   is[200] = normalize_tetriminio_id(readMemory("TetriminoID"))
@@ -52,7 +66,9 @@ function updateControllerInputs(game, board)
   is[202] = normalize_x(readMemory("TetriminoX"))
   is[203] = normalize_y(readMemory("TetriminoY1"))
   is[204] = normalize_level(readMemory("Level"))
+
   local outputs = evaluate_network(current_network, is)
+  clear_controller()
   joypad.write(1, outputs)
   --game:addFrame(emu.framecount(),joypad.get(1), joypad.get(1))
 end
@@ -63,9 +79,8 @@ end
 
 function updateFitness(game, board)
   local boardFitness = calculateFitness(game, board)
+  if boardFitness > 0 then print("got tetris score:", boardFitness) end
   local fitness = game.nrDrops * 100 + boardFitness
-
-  print("updating fitness: ", fitness)
 
   local species = pop.species[pop.current_species]
   local genome = species.genomes[pop.current_genome]
@@ -89,45 +104,103 @@ function onStart(game)
   -- create a new organism here
   next_genome(pop,true)
   initialize_run(false)
+  print("global_max_fitness: ", global_max_fitness)
 end
 
 function onEnd(game, board)
-  --if game ~= nil then
-  --  updateFitness(game, board)
-  --end
+  if game ~= nil then
+    local species = pop.species[pop.current_species]
+    local genome = species.genomes[pop.current_genome]
+    print("game over...fitness: ", genome.fitness)
+  end
+end
+
+tets = {
+  14,14,8,8,14,18,
+  2,7,8,14,14,7,14,7,
+  8,10,10,11,2,8,2,7,
+  7,11,18,14,2,2,7,11,
+  2,18,7,7,14,14,8,14,
+  8,8,7,7,7,18,10,7,
+  14,14,10,8,8,7,18,18,
+  2,7,2,7,10,7,8,11,
+  18,8,8,8,18,11,14,2,
+  18,7,14,14,14,10,8,11,
+  7,2,7,7,8,14,7,18,
+  8,11,2,11,18,18,7,8,
+  2,10,8,14,14,7,14,18,
+  18,18,2,14,2,11,8,2,
+  10,14,14,18,8,7,7,8,
+  14,8,11,8,7,11,8,10,
+  18,14,10,2,18,8,7,8,
+  8,2,2,10,18,18,8,18,
+  8,18,2,11,10,10,2,8,
+  7,8,10,10,11,11,7,2,
+  8,7,2,7,8,2,2,14,
+  2,10,14,7,2,8,10,8,
+  14,10,8,2,14,8,8,11,
+  14,7,7,11,7,11,7,11,
+  7,18,2,11,2,11,14,18,
+  10,2,8,18,11,2,14,10,
+  18,2,7,10,11,2,18,2,
+  7,2,7,10,10,18,11,7,
+  8,10,7,2,2,8,2,10,
+  10,8,2,11,18,18,8,14,
+  14,18,10,2,18,8,11,18,
+  7,8,8,14,18,10,11,8,
+  18,8,7,10,8,8,14,11,
+  14,11,18,8,7,10,11,2,
+  10,18,14,18,7,2,10,7,
+  7,14,18,14,7,11,7,11,
+  14,14,14,10,10,2,10,7,
+  10,11,8,8,11,10,8,11,
+  14,8,18,2,18,11,7,7,
+  18,14,18,2,2,7,11,2,
+  2,8,8,18,7,14,10,8,
+  18,11,7,14,2,11,18,14,
+  14,7,7,11,8,8,10,8,14,
+  11,18,8,7,2,14,14,2,7,
+  10,11,10,11,18,8,7,14,
+  7,2,14,7,8,8,10,14}
+
+tetIx = 3
+
+function onLock(game, board)
+  updateFitness(game, board)
+  setNextTetrimino(tets[tetIx])
+  tetIx = tetIx + 1
 end
 
 function updateTetriminos(game)
   -- when a game first starts, the tetriminos are always set to 19 and 14.
   -- so we need to detect when this changes, and add the first tetriminos to the game.
   if (currentTetriminoGlobal == 19 and getTetrimino() ~= 19) then
+    setTetrimino(tets[1])
+    setNextTetrimino(tets[2])
     game:setInitialTetriminos(emu.framecount(), getTetrimino(), getNextTetrimino())
   end
 end
 
+function initialize_population(load_file)
+  if load_file ~= nil then
+    load_backup(load_file)
+    initialize_run(true)
+  else
+    pop = new_pop(population_size)
 
-function initialize_population()
-  pop = new_pop(population_size)
+    for i = 1, pop.size do
+      local genome = new_genome()
+      mutate(genome)
+      speciate(genome)
+    end
 
-  for i = 1, pop.size do
-    local genome = new_genome()
-    mutate(genome)
-    speciate(genome)
+    next_genome(pop,false)
+    initialize_run(false)
+    create_backup("backup_"..state_file.."_gen_0.txt", global_best_genome, pop)
   end
-
-  next_genome(pop,false)
-  initialize_run(false)
-  create_backup("backup_"..state_file.."_gen_0.txt", global_best_genome, pop)
 end
 
 function initialize_run(best_run)
-  --savestate.load(state_file)
-  highest_fitness = 0
-  highest_distance = 0
-  gain = 0
-  advanced = 0
-  not_advanced = 20
-  --clear_controller()
   local g = best_run and global_best_genome or pop.species[pop.current_species].genomes[pop.current_genome]
   current_network = create_network(g)
 end
@@ -141,7 +214,7 @@ function main ()
     if not isPlaying(gameState) then pressStart()  end
   end
 
-  initialize_population()
+  initialize_population("backup_states/tetris.state_264_7_2_best.txt")
   loop(updateControllerInputs, updateTetriminos, onStart, onEnd, updateFitness, everyFrame)
 end
 
