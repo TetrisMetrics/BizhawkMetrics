@@ -44,6 +44,8 @@ Game = class(function(a,startFrame,startLevel)
   a.doubles         = 0 -- number of doubles scored so far
   a.singles         = 0 -- number of singles scored so far
 
+  a.tetrisRate      = 0
+
   a.totalPause      = 0 -- total amount of time (blocks dropped) that a tetris ready well has been covered
   a.nrPauses        = 0 -- total number of times that a tetris ready well has been covered up
   a.totalDrought    = 0 -- total number of blocks dropped until a line comes, WHEN we become tetris ready.
@@ -134,6 +136,7 @@ function Game:addClear (frame, nrLines)
   if nrLines == 3 then self.triples  = self.triples  + 1 end
   if nrLines == 2 then self.doubles  = self.doubles  + 1 end
   if nrLines == 1 then self.singles  = self.singles  + 1 end
+  self.tetrisRate = (self.tetrises * 4) / self.nrLines
 end
 
 function Game:setInitialTetriminos(globalFrame, first, second)
