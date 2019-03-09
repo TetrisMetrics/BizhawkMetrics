@@ -22,10 +22,8 @@ Like Tetris Friends, but Tetris Metrics.
   For each column, it gets the height of the highest block in it (in any column).
   Then, the lowest of all _those_ values is returned. The reason for this trickiness is because of holes.
    
-* Drought - The number of pieces it's been since you've been tetris ready. 
-  * Resets when a long bar comes (whether or not you use it to tetris). 
-  * Pauses if you cover your well.
-  * Resumes when you uncover it, or get a dirty tetris.
+* Drought - The number of perices since last I piece
+
 * Pause - The number of pieces it's been since you covered your well.
   * Resets when you clear your well or if you get a dirty tetris.
 * Surplus - When you become tetris ready, surplus is the number of blocks North of Perfect. 
@@ -75,10 +73,8 @@ Like Tetris Friends, but Tetris Metrics.
 
 * Average Drought
 
-  Running total of all droughts / number of droughts.
-  This should average out to be 7, since a line should come every 7 tetriminos on average.
-  If you have a high average drought score, you probably had some rough RNG. If you survived, congrats.
-  
+  The average number of pieces between I pieces.
+
 * Average Pause
 
   Running total of all pauses / number of pauses. 

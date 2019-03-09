@@ -6,8 +6,8 @@ function toPercent(n)
   return _n % 1 >= 0.5 and math.ceil(_n) or math.floor(_n)
 end
 
-function stepDown(offs)
-  offs.y = offs.y + 10
+function stepDown(offs, len)
+  offs.y = offs.y + (len and len or 10)
 end
 
 function printMetrics(gui, memory, game)
@@ -16,10 +16,11 @@ function printMetrics(gui, memory, game)
 
   local red = "#a81605"
 
-  gui.drawrect(5,20,85,215,"black", red)
-
   local x1 = 8
-  local y1 = 23
+  local y1 = 20
+
+  gui.drawrect(5,10,85,225,"black", red)
+
 
   local das = memory.readbyte(0x0046)
   local dasBackgroundColor
@@ -31,14 +32,14 @@ function printMetrics(gui, memory, game)
 
   local offs = {}
   offs.x = 15
-  offs.y = 33
+  offs.y = y1 + 10
 
   printMetric(gui, offs, "Singles:  ", game.singles)
   printMetric(gui, offs, "Doubles:  ", game.doubles)
   printMetric(gui, offs, "Triples:  ", game.triples)
   printMetric(gui, offs, "Tetrises: ", game.tetrises)
 
-  stepDown(offs)
+  stepDown(offs, 5)
   gui.text(x1,offs.y, "Other Metrics:", "white", "black")
   stepDown(offs)
   printMetric(gui, offs, "Accmdation:" , game.accommodation)
@@ -47,16 +48,23 @@ function printMetrics(gui, memory, game)
   printMetric(gui, offs, "Slope: "     , game.slope)
   printMetric(gui, offs, "Bumpiness:"  , game.bumpiness)
 
-
+  stepDown(offs, 5)
+  gui.text(x1,offs.y,"Droughts:", "white", "black")
   stepDown(offs)
+  printMetric(gui, offs, "Current:"    , game.droughtCounter)
+  printMetric(gui, offs, "Max:"    , game.droughtMax)
+  printMetric(gui, offs, "Avg:"    , game.droughtAvg)
+
+
+  stepDown(offs, 5)
   gui.text(x1,offs.y,"Averages:", "white", "black")
   stepDown(offs)
   printMetric(gui, offs, "TetrisRate:"  , toPercent(game.tetrisRate), "%")
   printMetric(gui, offs, "Clear:"  , game:avgClear())
-  printMetric(gui, offs, "Drought:", game:avgDrought())
   printMetric(gui, offs, "Pause:"  , game:avgPause())
 
   gui.drawrect(192,y1+70,192+30,y1+82,"black")
+
   gui.text(192,y1+72,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
 end
 

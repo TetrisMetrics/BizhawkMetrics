@@ -16,6 +16,11 @@ Game = class(function(a,startFrame,startLevel)
 
   a.drought         = Drought() -- the drought object helps calculate droughts
 
+  a.droughtCounter  = 0
+  a.droughtMax      = 0
+  a.droughts        = 0
+  a.droughtAvg      = 0
+
   a.frames          = {} -- list of everything that happened every frame. indexed by frame nr.
   a.tetriminos      = {} -- list of all the tetriminos that spawned, indexed by frame.
   a.clears          = {} -- list of every clear that happened, indexed by frame.
@@ -77,15 +82,15 @@ function Game:dump()
 end
 
 -- this is all messy AF out the order is so arbitrary...
-function Game:lock (at, nt, b, frame, linesThisTurn)
-  game:addTetrimino(frame, nt, b)
+function Game:lock (current_tetrimino, next_tetrimino, board, frame, linesThisTurn)
+  game:addTetrimino(frame, current_tetrimino, board)
   if linesThisTurn > 0 then self:addClear(frame, linesThisTurn) end
 
-  local drought = self.drought:endTurn(linesThisTurn, b:isTetrisReady(), at, self)
-  self:handleSurplus(b, linesThisTurn, self.drought.paused)
+  local drought = self.drought:endTurn(linesThisTurn, board:isTetrisReady(), current_tetrimino, self)
+  self:handleSurplus(board, linesThisTurn, self.drought.paused)
   self.drought = drought
 
-  self:setTetrisReady(b:isTetrisReady())
+  self:setTetrisReady(board:isTetrisReady())
 
   return drought
 end
@@ -132,10 +137,11 @@ function Game:addClear (frame, nrLines)
   if nrLines == 4 then
     self.tetrises = self.tetrises + 1
     self.lastTetris = self.nrDrops -- todo: move that last part?
+  else
+    if nrLines == 3 then self.triples  = self.triples  + 1 end
+    if nrLines == 2 then self.doubles  = self.doubles  + 1 end
+    if nrLines == 1 then self.singles  = self.singles  + 1 end
   end
-  if nrLines == 3 then self.triples  = self.triples  + 1 end
-  if nrLines == 2 then self.doubles  = self.doubles  + 1 end
-  if nrLines == 1 then self.singles  = self.singles  + 1 end
   self.tetrisRate = (self.tetrises * 4) / self.nrLines
 end
 
@@ -150,9 +156,18 @@ function Game:setInitialTetriminos(globalFrame, first, second)
   end
 end
 
-function Game:addTetrimino (globalFrame, at, board)
-  print(globalFrame - self.startFrame, "added tetrimino:", getTetriminoNameById(at))
+function Game:addTetrimino (globalFrame, current_tetrimino, board)
   self.tetriminos[tostring(globalFrame - self.startFrame)] = at
+
+  if current_tetrimino == 18 then
+    self.droughtMax = self.droughtCounter > self.droughtMax and self.droughtCounter or self.droughtMax
+    self.droughtAvg = ((self.droughtAvg * self.droughts) + self.droughtCounter) / (self.droughts + 1)
+    self.droughts = self.droughts + 1
+    self.droughtCounter = 0
+  else
+    self.droughtCounter = self.droughtCounter + 1
+  end
+
   self.nrDrops = self.nrDrops + 1
 
   self.nrPressesPerTet = (self.nrPresses / 2) / self.nrDrops
