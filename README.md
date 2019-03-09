@@ -41,28 +41,27 @@ Like Tetris Friends, but Tetris Metrics.
             
 ### Averages
 
+* Tetris rate
+
+  The percentage of the lines cleared that have been cleared by a tetris.
+
 * Conversion ratio
 
-  Number of tetrises / the number of times you've been ready for a tetris. 
-  
+  Number of tetrises / the number of times you've been ready for a tetris.
   Would be 1 if you never covered your well.
 
 * Average Clear
 
   The average number of lines you clear every time you clear lines.
-  
   Would be 4 if you only ever got tetrises.
 
 * Average Accommodation
   
    Running total of accommodation scores / number of tetriminos played.
-   
    Aim to get this score as close to 7 as possible.
-   
 * Average Max Height
 
   Running total of max heights / number of tetriminos played.
-  
   A perfect average max height would probably be less than 4, as you build up for a perfect tetris 
   (one that completely clears the board), and then get a tetris immediately. This, however, is certainly
   unattainable. It is currently unknown what a pro players average max height would be close to.
@@ -77,14 +76,12 @@ Like Tetris Friends, but Tetris Metrics.
 * Average Drought
 
   Running total of all droughts / number of droughts.
-  
   This should average out to be 7, since a line should come every 7 tetriminos on average.
   If you have a high average drought score, you probably had some rough RNG. If you survived, congrats.
   
 * Average Pause
 
   Running total of all pauses / number of pauses. 
-  
   Helps give an indication of how well you dig, if you are able to uncover your covered wells quickly.
   It's probably ideal to have a very low average pause score, but a higher average pause score
   might not necessarily indicate bad play, but simply brutal RNG.
@@ -92,14 +89,12 @@ Like Tetris Friends, but Tetris Metrics.
 * Average Surplus
 
   Running total of surplus scores / number of times tetris ready
-  
   If your surplus is very high, it might be an indication that you aren't burning enough.
   However, that might be totally okay if, for example, you are going for maxouts.
 
 * Average Tetris Readiness
 
   Running total of tetris readiness scores / number of times tetris ready.
-  
   You should probably aim to get your average tetris readiness score as low as possible. 
   You always want to be tetris ready, as fast as possible. Of course, don't sacrifice
   your board state to get there!
@@ -107,13 +102,10 @@ Like Tetris Friends, but Tetris Metrics.
 * Average Presses (Per tetrimino)
 
   Running total of all button presses / number of tetriminios played.
-  
   For non hyper-tappers, you should probably aim to keep this score low, as a high score 
   would probably indicate a lot of indecision, and probably a lot of last second presses.
-  
   Hyper-tappers probably also want to keep this score low, but their average score would 
   likely be much higher than that of a non-hyper-tapper. 
-  
   It is currently unknown what a pro players average presses per tetrimino would be close to
   for hyper-tappers and non-hyper-tappers.
 
