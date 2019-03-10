@@ -1,50 +1,78 @@
 
 local displayMetrics = "yes" -- input.popup("Display Metrics?")
 
+function toPercent(n)
+  local _n = n *100
+  return _n % 1 >= 0.5 and math.ceil(_n) or math.floor(_n)
+end
+
+function stepDown(offs, len)
+  offs.y = offs.y + (len and len or 10)
+end
+
 function printMetrics(gui, memory, game)
 
   if displayMetrics == "no" then return; end
 
   local red = "#a81605"
 
-  gui.drawrect(5,20,85,215,"black", red)
-
   local x1 = 8
-  local y1 = 23
+  local y1 = 20
+
+  gui.drawrect(5,10,85,225,"black", red)
+
 
   local das = memory.readbyte(0x0046)
   local dasBackgroundColor
   if das < 10 then dasBackgroundColor = red else dasBackgroundColor = "#207005" end
   --gui.text(x1,y1+0,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
+  --
+  --
   gui.text(x1,y1+0,"Clears:", "white", "black")
 
-  printMetric(gui, -10, "Singles:  ", game.singles)
-  printMetric(gui, 00, "Doubles:  ", game.doubles)
-  printMetric(gui, 10, "Triples:  ", game.triples)
-  printMetric(gui, 20, "Tetrises: ", game.tetrises)
+  local offs = {}
+  offs.x = 15
+  offs.y = y1 + 10
 
-  gui.text(x1,y1+60,"Other Metrics:", "white", "black")
-  printMetric(gui, 50, "Accmdation:" , game.accommodation)
-  printMetric(gui, 60, "Readiness:"  , game.lastReadiness)
-  printMetric(gui, 70, "Surplus: "   , game.lastSurplus)
-  printMetric(gui, 80, "Slope: "     , game.slope)
-  printMetric(gui, 90, "Bumpiness:"  , game.bumpiness)
+  printMetric(gui, offs, "Singles:  ", game.singles)
+  printMetric(gui, offs, "Doubles:  ", game.doubles)
+  printMetric(gui, offs, "Triples:  ", game.triples)
+  printMetric(gui, offs, "Tetrises: ", game.tetrises)
 
-  gui.text(x1,y1+130,"Averages:", "white", "black")
-  printMetric(gui, 120, "Clear:"  , game:avgClear())
-  printMetric(gui, 130, "Drought:", game:avgDrought())
-  printMetric(gui, 140, "Pause:"  , game:avgPause())
+  stepDown(offs, 5)
+  gui.text(x1,offs.y, "Other Metrics:", "white", "black")
+  stepDown(offs)
+  printMetric(gui, offs, "Accmdation:" , game.accommodation)
+  printMetric(gui, offs, "Readiness:"  , game.lastReadiness)
+  printMetric(gui, offs, "Surplus: "   , game.lastSurplus)
+  printMetric(gui, offs, "Slope: "     , game.slope)
+  printMetric(gui, offs, "Bumpiness:"  , game.bumpiness)
+
+  stepDown(offs, 5)
+  gui.text(x1,offs.y,"Droughts:", "white", "black")
+  stepDown(offs)
+  printMetric(gui, offs, "Current:"    , game.droughtCounter)
+  printMetric(gui, offs, "Max:"    , game.droughtMax)
+  printMetric(gui, offs, "Avg:"    , game.droughtAvg)
+
+
+  stepDown(offs, 5)
+  gui.text(x1,offs.y,"Averages:", "white", "black")
+  stepDown(offs)
+  printMetric(gui, offs, "TetrisRate:"  , toPercent(game.tetrisRate), "%")
+  printMetric(gui, offs, "Clear:"  , game:avgClear())
+  printMetric(gui, offs, "Pause:"  , game:avgPause())
 
   gui.drawrect(192,y1+70,192+30,y1+82,"black")
+
   gui.text(192,y1+72,"DAS:" .. memory.readbyte(0x0046), "white", dasBackgroundColor)
 end
 
-function printMetric(gui, yOffset,title,num)
-  local x1 = 12
-  local y2 = 43
+function printMetric(gui, offs,title,num, suffix)
   local numDisplay = ""
   if num ~= nil then numDisplay = round(num, 2) end
-  gui.text(x1,y2+yOffset, title .. numDisplay, "white", "black")
+  gui.text(offs.x,offs.y, title .. numDisplay .. (suffix or ""), "white", "black")
+  stepDown(offs)
 end
 
 function drawJoypad(gui, j)

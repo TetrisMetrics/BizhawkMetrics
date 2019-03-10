@@ -11,6 +11,22 @@ require("MetricsDisplay")
 
 currentInputs = joypad.get(1)
 
+POSIX = 'POSIX'
+WINDOWS = 'WINDOWS'
+
+if package.config:sub(1,1) == "/" then
+  osFamily = POSIX
+  statsPath = os.getenv("HOME") .. "/tetris_stats/"
+  os.execute("mkdir -p " .. statsPath)
+  os.execute("mkdir -p " .. statsPath .. "/replays/")
+else
+  -- TODO: Someone who has actually done something with
+  --       windows in the last decade should fix this
+  osFamily = WINDOWS
+  statsPath = "\\tetris_stats\\"
+end
+print("Running on " .. osFamily .. "\n")
+
 --
 function updateControllerInputs(game)
   game:addFrame(emu.framecount(),joypad.get(1), currentInputs)

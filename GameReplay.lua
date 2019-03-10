@@ -47,8 +47,13 @@ function GameReplay:toJson()
 end
 
 function GameReplay:writeReplay()
-  local f = io.open("replays/" .. self.filename, "w")
-  f:write(self:toJson())
-  f:flush()
-  f:close()
+  local path = statsPath .. 'replays/' .. self.filename
+  local f = io.open(path, "w")
+  if f == nil then
+    print("Could not read file: " .. path .. "\n")
+  else
+    f:write(self:toJson())
+    f:flush()
+    f:close()
+  end
 end
